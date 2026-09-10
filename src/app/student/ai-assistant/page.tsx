@@ -1,0 +1,2 @@
+import DevelopmentFeaturePage from "@/components/student/development-feature-page";
+export default function AiAssistantPage(){return <DevelopmentFeaturePage variant="assistant" icon="✦" title="AI-помощник" description="AI-помощник поможет разбирать сложные темы, находить ошибки в решениях и получать персональные объяснения." features={["Объяснение тем","Разбор ошибок","Персональные подсказки"]} note="Функция станет доступна после тестирования."/>}

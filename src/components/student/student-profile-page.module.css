@@ -1,0 +1,45 @@
+.page { max-width: 980px; }
+.profileCard { display: grid; grid-template-columns: 190px minmax(0,1fr); gap: clamp(26px,5vw,58px); align-items: center; padding: clamp(24px,4vw,36px); border: 1px solid #d8e3da; border-radius: 18px; background: linear-gradient(135deg,#fbfdfb,#f5f8f4); box-shadow: 0 10px 32px rgba(30,48,37,.045); }
+.accountInfo { display: grid; gap: 0; min-width: 0; margin: 0; }
+.accountInfo > div { display: grid; grid-template-columns: 145px minmax(0,1fr); gap: 18px; align-items: baseline; padding: 12px 0; }
+.accountInfo > div + div { border-top: 1px solid #e5ebe6; }
+.accountInfo dt { color: #748078; font-size: .79rem; }
+.accountInfo dd { min-width: 0; margin: 0; color: #263a2e; font-weight: 650; line-height: 1.45; overflow-wrap: anywhere; }
+.accountInfo .nameRow { padding-top: 0; }
+.nameRow dd { font-size: clamp(1.35rem,3vw,1.72rem); font-weight: 750; letter-spacing: -.025em; }
+.accountInfo > div:last-child { padding-bottom: 0; }
+.status { display: inline-flex; align-items: center; padding: 5px 9px; border-radius: 999px; background: #e5f1e7; color: #315d40; font-size: .76rem; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+.card { min-width: 0; padding: 21px; border: 1px solid #dfe6e0; border-radius: 17px; background: #fff; box-shadow: 0 8px 28px rgba(30,48,37,.035); }
+.cardTitle { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.cardTitle h2 { margin: 0; color: #263a2e; font-size: 1.08rem; }
+.icon { width: 32px; height: 32px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 10px; background: #edf3ee; color: #315d40; }
+.icon svg { width: 18px; height: 18px; }
+.programs { display: flex; flex-wrap: wrap; gap: 8px; }
+.programs span { padding: 8px 11px; border: 1px solid #cbd9ce; border-radius: 999px; background: #f0f5f0; color: #315d40; font-size: .84rem; font-weight: 700; }
+.empty { margin: 0; color: #748078; }
+.teacher { display: block; color: #263a2e; font-size: 1.18rem; }
+.whatsapp { margin-top: 15px; display: flex; justify-content: space-between; gap: 15px; padding: 12px; border-radius: 10px; background: #f3f6f2; color: #315d40; }
+.whatsapp span { color: #748078; font-weight: 500; }
+.whatsapp b { overflow-wrap: anywhere; text-align: right; }
+.actions { grid-column: 1/-1; }
+.actionButtons { display: flex; flex-wrap: wrap; gap: 9px; }
+.actionButtons form { margin: 0; }
+.actionButtons button, .success button, .formActions button { min-height: 43px; padding: 0 14px; border: 1px solid #315d40; border-radius: 10px; background: #315d40; color: #fff; font: inherit; font-weight: 750; cursor: pointer; }
+.actionButtons .logout { border-color: #d5ddd7; background: #fff; color: #455a4e; }
+.actionButtons button:disabled { cursor: wait; opacity: .65; }
+.actionButtons button:focus-visible, .supportForm button:focus-visible, .whatsapp:focus-visible { outline: 3px solid rgba(80,128,94,.35); outline-offset: 2px; }
+.supportForm { display: grid; gap: 16px; padding-top: 12px; }
+.supportForm label { display: grid; gap: 7px; font-weight: 700; }
+.supportForm select, .supportForm textarea { width: 100%; padding: 11px; border: 1px solid #ccd6ce; border-radius: 10px; background: #fff; font: inherit; }
+.supportForm textarea { min-height: 160px; resize: vertical; }
+.supportForm label small { text-align: right; color: #78837c; }
+.formActions { display: flex; justify-content: flex-end; gap: 8px; }
+.formActions button:first-child { border-color: #d5ddd7; background: #fff; color: #455a4e; }
+.formError { padding: 10px; border-radius: 9px; background: #fff1ee; color: #8a433b; }
+.success { padding: 30px 0; text-align: center; }
+.success strong { font-size: 1.3rem; }
+.success p { color: #6c7971; }
+.success button { margin-top: 10px; }
+@media (max-width:700px) { .profileCard { grid-template-columns: 1fr; gap: 24px; padding: 22px 18px; } .accountInfo { width: 100%; } .grid { grid-template-columns: 1fr; } .actions { grid-column: auto; } .card { padding: 18px; } .actionButtons { display: grid; } .actionButtons form, .actionButtons button { width: 100%; } .formActions { display: grid; } .formActions button { width: 100%; } }
+@media (max-width:420px) { .accountInfo > div { grid-template-columns: 1fr; gap: 4px; padding: 11px 0; } .whatsapp { align-items: flex-start; flex-direction: column; gap: 4px; } .whatsapp b { text-align: left; } }

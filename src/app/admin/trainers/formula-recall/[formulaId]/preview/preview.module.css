@@ -1,0 +1,18 @@
+.checkRow {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.checkRow > button { flex: 0 0 auto; }
+.checkCorrect, .checkWrong { min-width: 0; display: grid; gap: 2px; font-size: 11px; }
+.checkCorrect { color: #276447; }
+.checkWrong { color: #91483f; }
+.checkCorrect small, .checkWrong small { font-size: 9px; font-weight: 650; opacity: .72; }
+.checkRow button:focus-visible { outline: 3px solid #b9ed65; outline-offset: 2px; }
+
+@media (max-width: 720px) {
+  .checkRow { align-items: stretch; flex-direction: column; }
+  .checkRow > button { width: 100%; }
+}

@@ -1,0 +1,87 @@
+.result {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.result > header {
+  margin: 18px 0 24px;
+  padding: 22px;
+  border-radius: 18px;
+  color: #fff;
+  background: linear-gradient(135deg, #315c40, #244a33);
+  box-shadow: 0 14px 32px rgb(32 70 45 / 18%);
+}
+
+.resultHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.resultHeading > div:first-child > span,
+.score > span {
+  color: #d4e2d7;
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+}
+
+.result h1 {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.score {
+  min-width: 150px;
+  padding-left: 20px;
+  border-left: 1px solid rgb(255 255 255 / 22%);
+}
+
+.score strong,
+.score small {
+  display: block;
+}
+
+.score strong {
+  margin: 2px 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1;
+}
+
+.score small {
+  color: #e2ece4;
+}
+
+.result header > p {
+  margin: 18px 0 0;
+  color: #d8e5db;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.stats span {
+  padding: 6px 9px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 9%);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 600px) {
+  .resultHeading {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .score {
+    width: 100%;
+    padding: 14px 0 0;
+    border-top: 1px solid rgb(255 255 255 / 22%);
+    border-left: 0;
+  }
+}

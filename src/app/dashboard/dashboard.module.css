@@ -1,0 +1,28 @@
+.page {
+  --ink: #142b23;
+  --paper: #f7f8f1;
+  --green: #b9ed65;
+  min-height: 100svh;
+  padding: 32px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  position: relative;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.page::before { content: ""; position: absolute; width: 430px; height: 430px; right: -170px; top: -230px; border: 1px solid rgba(20,43,35,.13); border-radius: 50%; }
+.page::after { content: ""; position: absolute; width: 260px; height: 260px; left: -140px; bottom: -140px; border-radius: 50%; background: rgba(185,237,101,.24); }
+.card { position: relative; z-index: 1; width: min(100%, 560px); padding: 42px; border: 1px solid rgba(20,43,35,.06); border-radius: 18px; background: #fff; box-shadow: 0 28px 70px rgba(20,43,35,.14); }
+.cardTop { display: flex; align-items: center; justify-content: space-between; padding-bottom: 26px; border-bottom: 1px solid #e3e7e2; }
+.brand { display: flex; align-items: center; gap: 10px; border-radius: 3px; font-size: 19px; font-weight: 800; letter-spacing: -.04em; }
+.brandMark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50% 50% 50% 12%; background: var(--ink); color: var(--green); font-size: 16px; }
+.status { display: flex; align-items: center; gap: 7px; color: #63736b; text-transform: uppercase; letter-spacing: .1em; font-size: 8px; font-weight: 800; }.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px rgba(185,237,101,.2); }
+.content { padding: 38px 0 34px; }.eyebrow { color: #4d7e69; text-transform: uppercase; letter-spacing: .14em; font-size: 9px; font-weight: 850; }.content h1 { margin: 15px 0 31px; font-size: clamp(38px, 6vw, 54px); line-height: 1; letter-spacing: -.055em; }
+.userInfo { padding: 18px; border-radius: 9px; background: #f4f7f2; }.userInfo span { display: block; margin-bottom: 7px; color: #75827b; font-size: 9px; text-transform: uppercase; letter-spacing: .1em; }.userInfo strong { font-size: 14px; overflow-wrap: anywhere; }
+.managementLink { margin-top: 12px; padding: 16px 18px; display: flex; align-items: center; justify-content: space-between; border-radius: 9px; background: rgba(185,237,101,.28); font-size: 14px; font-weight: 800; }.managementLink small { display: block; margin-bottom: 4px; color: #62806f; text-transform: uppercase; letter-spacing: .1em; font-size: 8px; }.managementLink > span:last-child { font-size: 20px; }
+.signOut { width: 100%; height: 54px; padding: 0 21px; display: flex; align-items: center; justify-content: space-between; border: 0; border-radius: 7px; background: var(--ink); color: white; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; transition: background .18s, transform .18s; }.signOut:hover { background: #245342; transform: translateY(-1px); }.signOut:focus-visible, .brand:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+
+@media (max-width: 560px) { .page { padding: 20px 16px; }.card { padding: 30px 22px; }.content { padding-block: 32px 28px; }.content h1 { font-size: 40px; } }
+@media (prefers-reduced-motion: reduce) { .signOut { transition: none; } }

@@ -1,0 +1,124 @@
+.scroller {
+  max-width: 100%;
+  margin: 22px 0 16px;
+  padding: 3px 2px 7px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #c8d2ca transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs {
+  width: max-content;
+  min-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tabs a {
+  min-height: 48px;
+  padding: 11px 17px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid #dce4de;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .62);
+  color: #5e6e65;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  box-shadow: 0 1px 0 rgba(20, 43, 35, .02);
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .12s ease;
+}
+
+.tabs a span {
+  color: #71847a;
+  font-size: 17px;
+  line-height: 1;
+  transition: color .18s ease, transform .18s ease;
+}
+
+.tabs a:hover {
+  border-color: #c3d1c7;
+  background: #f1f5f1;
+  color: #294b3e;
+  box-shadow: 0 3px 10px rgba(35, 69, 51, .06);
+}
+
+.tabs a:hover span {
+  color: #426b55;
+}
+
+.tabs a:active {
+  transform: translateY(1px) scale(.99);
+  background: #e7eee8;
+  box-shadow: none;
+}
+
+.tabs a[aria-disabled="true"] {
+  opacity: .55;
+  cursor: wait;
+}
+
+.tabs .active {
+  border-color: #9fbba7;
+  background: #e4f0e6;
+  color: #173f32;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(38, 79, 55, .09), inset 0 1px 0 rgba(255, 255, 255, .72);
+}
+
+.tabs .active span {
+  color: #315f46;
+  transform: scale(1.05);
+}
+
+.tabs a:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid rgba(80, 128, 94, .36);
+  outline-offset: 2px;
+  border-color: #527a60;
+}
+
+@media (max-width: 620px) {
+  .scroller {
+    max-width: calc(100vw - 28px);
+    margin-top: 18px;
+    padding-bottom: 8px;
+  }
+
+  .tabs {
+    min-width: max-content;
+    gap: 7px;
+  }
+
+  .tabs a {
+    min-height: 46px;
+    padding: 10px 15px;
+    gap: 9px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
+  .tabs a span {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabs a,
+  .tabs a span {
+    transition: none;
+  }
+}

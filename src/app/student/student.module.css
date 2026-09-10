@@ -1,0 +1,13 @@
+.restricted { min-height: 100dvh; display: grid; place-items: center; padding: 20px; background: var(--paper); }
+.restricted section, .placeholder { width: min(560px, 100%); background: #fff; border: 1px solid #dfe6e1; border-radius: 18px; padding: 24px; }
+.restricted span, .placeholder > span { color: #728078; font-size: .78rem; text-transform: uppercase; letter-spacing: .07em; }
+.restricted h1, .placeholder h1 { margin: 8px 0; }
+.restricted p, .placeholder p { color: #657169; line-height: 1.55; }
+.restricted button { border: 0; border-radius: 9px; background: #315c40; color: #fff; padding: 10px 16px; font-weight: 750; }
+.placeholder > a { display: block; color: #42604d; text-decoration: none; margin-bottom: 24px; }
+.placeholder dl { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; }
+.placeholder dl > div { border: 1px solid #e4e9e5; border-radius: 10px; padding: 12px; }
+.placeholder dt { color: #6e7972; font-size: .78rem; }
+.placeholder dd { margin: 4px 0 0; font-weight: 750; }
+.devError { padding: 10px; border-radius: 9px; background: #fff3f3; color: #834444; }
+@media (max-width: 520px) { .placeholder dl { grid-template-columns: 1fr; } }
