@@ -8,7 +8,7 @@ import styles from "../trainers.module.css";
 import studentStyles from "@/app/student/trainers/trainers.module.css";
 import type { TrainerGroup } from "@/lib/trainers/trainer-groups";
 
-export const metadata: Metadata = { title: "Быстрые задачи — NSP" };
+export const metadata: Metadata = { title: "Быстрые задачи — AKEDA" };
 type Row = { id: string; title: string; description: string; definition: unknown; content_revision: number; updated_at: string; group_id: string | null };
 
 export default async function QuickProblemsPage() {

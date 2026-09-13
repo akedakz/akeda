@@ -4,7 +4,7 @@ import TrainerTypeCard from "@/components/trainers/trainer-type-card";
 import { TRAINER_TYPE_UI } from "@/lib/trainers/trainer-type-metadata";
 import styles from "./trainers.module.css";
 
-export const metadata: Metadata = { title: "Тренажёры — NSP" };
+export const metadata: Metadata = { title: "Тренажёры — AKEDA" };
 
 export default function TrainersPage() {
   const quickProblems = TRAINER_TYPE_UI.QUICK_PROBLEMS;

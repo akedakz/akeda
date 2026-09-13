@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { TrainerDefinition } from "@/lib/trainers/trainer-import";
 import ConditionEditor from "./condition-editor";
 
-export const metadata: Metadata = { title: "Контент Quick Problems — NSP" };
+export const metadata: Metadata = { title: "Контент Quick Problems — AKEDA" };
 
 export default async function QuickProblemsContentPage({ params }: { params: Promise<{ trainerId: string }> }) {
   const current = await getCurrentProfile();

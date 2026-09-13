@@ -57,7 +57,7 @@ export default function StudentMaterialsExplorer({ folders, materials, initialFo
     {!visibleFolders.length && !visibleMaterials.length ? <section className={styles.empty}><h2>{normalized ? "Ничего не найдено" : folderId ? "В этой папке пока нет материалов" : "Материалов пока нет"}</h2>{!normalized && !folderId && <p>Здесь появятся файлы и ссылки от преподавателя.</p>}</section> : <div className={styles.list}>
       {visibleFolders.map((folder) => <button type="button" className={styles.row} onClick={() => navigate(folder.id)} key={folder.id}><span className={styles.icon}>▰</span><span className={styles.info}><strong>{folder.name}</strong><small>Папка</small></span></button>)}
       {visibleMaterials.filter((item) => item.type === "FILE").map((item) => <MaterialRow item={item} key={item.id}/>)}
-      {visibleMaterials.filter((item) => item.type === "LINK").map((item) => <MaterialRow item={item} key={item.id}/>)}
+      {visibleMaterials.filter((item) => item.type !== "FILE").map((item) => <MaterialRow item={item} key={item.id}/>)}
     </div>}
   </div>;
 }

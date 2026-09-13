@@ -5,7 +5,7 @@ import FormulaRecallLibrary from "./formula-recall-library";
 import BackLink from "@/components/back-link";
 import studentStyles from "@/app/student/trainers/trainers.module.css";
 
-export const metadata: Metadata = { title: "Formula Recall — NSP" };
+export const metadata: Metadata = { title: "Formula Recall — AKEDA" };
 
 export default async function FormulaRecallPage() {
   const current = await getCurrentProfile();

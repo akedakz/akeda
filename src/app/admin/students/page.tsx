@@ -10,8 +10,8 @@ import { createStudentAvatarUrls } from "@/lib/avatars/student-avatar";
 import OpenStudentButton from "./open-student-button";
 
 export const metadata: Metadata = {
-  title: "Ученики — NSP",
-  description: "Управление учениками NSP.",
+  title: "Ученики — AKEDA",
+  description: "Управление учениками AKEDA.",
 };
 
 type StudentProfile = {

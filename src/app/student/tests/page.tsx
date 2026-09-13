@@ -8,7 +8,7 @@ import { buildStudentTestSummaries, sortPendingTests } from "@/lib/tests/build-s
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export const metadata: Metadata = { title: "Тесты — NSP" };
+export const metadata: Metadata = { title: "Тесты — AKEDA" };
 export default function StudentTestsPage() { return <PageShell><PageHeader title="Тесты" description="Назначенные тесты и результаты."/><PageContent><Suspense fallback={<PageContentLoading label="Загружаем тесты"/>}><TestsContent/></Suspense></PageContent></PageShell>; }
 async function TestsContent() {
   const current = await getCurrentProfile(); if (!current) redirect("/login"); if (current.profile?.role !== "STUDENT") redirect("/admin");

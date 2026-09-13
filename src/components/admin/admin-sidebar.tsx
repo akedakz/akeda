@@ -45,9 +45,9 @@ export default function AdminSidebar({ displayName }: { displayName: string }) {
   return (
     <><aside className={styles.sidebar}>
       <header className={styles.topbar}>
-        <Link className={styles.brand} href="/admin" mode="auto" showPendingLabel={false} lockWhilePending pendingStyle={{ opacity: .62, cursor: "wait" }} aria-label="NSP — обзор">
-          <span className={styles.brandMark}>N</span>
-          <span><strong>NSP</strong><small>Панель администратора</small></span>
+        <Link className={styles.brand} href="/admin" mode="auto" showPendingLabel={false} lockWhilePending pendingStyle={{ opacity: .62, cursor: "wait" }} aria-label="AKEDA — обзор">
+          <span className={styles.brandMark}>A</span>
+          <span><strong>AKEDA</strong><small>Панель администратора</small></span>
         </Link>
         <NotificationBell/>
       </header>

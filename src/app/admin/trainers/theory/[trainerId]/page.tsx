@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { TheoryDefinition, TheoryStatus } from "@/lib/trainers/theory-types";
 import TheoryEditor from "./theory-editor";
 
-export const metadata: Metadata = { title: "Редактор Theory — NSP" };
+export const metadata: Metadata = { title: "Редактор Theory — AKEDA" };
 type Row = { id: string; title: string; status: TheoryStatus; definition: TheoryDefinition; content_revision: number; updated_at: string };
 
 export default async function TheoryEditorPage({ params }: { params: Promise<{ trainerId: string }> }) {

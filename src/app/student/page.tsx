@@ -13,7 +13,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import styles from "./student.module.css";
 import { createStudentAvatarUrl } from "@/lib/avatars/student-avatar";
 
-export const metadata: Metadata = { title: "Главная — кабинет ученика NSP", description: "Расписание, тесты и последние уроки." };
+export const metadata: Metadata = { title: "Главная — кабинет ученика AKEDA", description: "Расписание, тесты и последние уроки." };
 type AssignmentRow = { id: string; title: string; deadline_at: string | null; created_at: string };
 type AttemptRow = { id: string; assignment_id: string; submitted_at: string | null; score: number | null; max_score: number | null };
 type LessonRow = { id: string; starts_at: string; ends_at: string; status_override: LessonStatusOverride | null };

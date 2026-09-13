@@ -12,7 +12,7 @@ import { loadFormulaRecallSummary } from "@/lib/formula-recall/runtime-data";
 import { countActiveStudentMistakes } from "@/lib/mistakes/runtime";
 import { taskCountLabel } from "@/lib/mistakes/labels";
 
-export const metadata: Metadata = { title: "Тренажёры — NSP" };
+export const metadata: Metadata = { title: "Тренажёры — AKEDA" };
 
 export default function StudentTrainersPage() { return <PageShell><PageHeader title="Тренажёры" description="Практика по назначенным направлениям."/><PageContent><Suspense fallback={<PageContentLoading label="Загружаем тренажёры"/>}><TrainersContent/></Suspense></PageContent></PageShell>; }
 async function TrainersContent() {

@@ -31,8 +31,8 @@ export default function StudentProfilePage({ profile, avatarUrl }: { profile: Pr
       </section>
       <section className={styles.card}>
         <CardTitle icon="profile">Преподаватель</CardTitle>
-        <strong className={styles.teacher}>Арман Бисембаев</strong>
-        <a className={styles.whatsapp} href="https://wa.me/77051586877" target="_blank" rel="noopener noreferrer" aria-label="Написать Арману Бисембаеву в WhatsApp по номеру 8 705 158 68 77"><span>WhatsApp</span><b>8 705 158 68 77</b></a>
+        <strong className={styles.teacher}>Адильжан Ажагалиев</strong>
+        <a className={styles.whatsapp} href="https://wa.me/77776902712" target="_blank" rel="noopener noreferrer" aria-label="Написать Адильжану Ажагалиеву в WhatsApp по номеру +7 777 690 27 12"><span>WhatsApp</span><b>+7 777 690 27 12</b></a>
       </section>
       <section className={`${styles.card} ${styles.actions}`}>
         <CardTitle icon="assistant">Действия</CardTitle>

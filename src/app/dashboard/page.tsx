@@ -6,8 +6,8 @@ import { signOut } from "./actions";
 import styles from "./dashboard.module.css";
 
 export const metadata: Metadata = {
-  title: "Личный кабинет — NSP",
-  description: "Личный кабинет пользователя NSP.",
+  title: "Личный кабинет — AKEDA",
+  description: "Личный кабинет пользователя AKEDA.",
 };
 
 export default async function DashboardPage() {
@@ -22,8 +22,8 @@ export default async function DashboardPage() {
       <main className={styles.page}>
         <section className={styles.card} aria-labelledby="profile-error-title">
           <div className={styles.cardTop}>
-            <Link className={styles.brand} href="/" aria-label="NSP — на главную">
-              <span className={styles.brandMark}>N</span><span>NSP</span>
+            <Link className={styles.brand} href="/" aria-label="AKEDA — на главную">
+              <span className={styles.brandMark}>A</span><span>AKEDA</span>
             </Link>
           </div>
           <div className={styles.content}>

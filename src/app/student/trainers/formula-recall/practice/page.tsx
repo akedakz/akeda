@@ -4,7 +4,7 @@ import { getCurrentProfile } from "@/lib/auth/get-current-profile";
 import { loadActiveFormulaRecallTask, loadFormulaRecallSummary } from "@/lib/formula-recall/runtime-data";
 import FormulaRecallPractice from "./formula-recall-practice";
 
-export const metadata: Metadata = { title: "Практика Formula Recall — NSP" };
+export const metadata: Metadata = { title: "Практика Formula Recall — AKEDA" };
 
 export default async function FormulaRecallPracticePage({ searchParams }: { searchParams: Promise<{ topic?: string }> }) {
   const current = await getCurrentProfile();

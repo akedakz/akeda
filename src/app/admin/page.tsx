@@ -8,7 +8,7 @@ import { addCalendarDays, almatyDate, almatyLocalToUtc } from "@/lib/lessons/les
 import { getLessonStatus } from "@/lib/lessons/lesson-status";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export const metadata: Metadata = { title: "Обзор — NSP", description: "Панель текущего дня." };
+export const metadata: Metadata = { title: "Обзор — AKEDA", description: "Панель текущего дня." };
 
 type LessonRow = { id: string; student_id: string; starts_at: string; ends_at: string; status_override: LessonStatusOverride | null };
 type AttemptRow = { assignment_id: string; student_id: string; attempt_number: number; submitted_at: string; score: number; max_score: number };

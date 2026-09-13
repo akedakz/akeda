@@ -9,7 +9,7 @@ import styles from "../trainers.module.css";
 import {groupTrainerItems} from "@/lib/trainers/trainer-groups";
 import {TrainerGroupSection} from "@/components/trainers/trainer-group-ui";
 
-export const metadata: Metadata = { title: "Theory — NSP" };
+export const metadata: Metadata = { title: "Theory — AKEDA" };
 
 export default async function StudentTheoryPage({ searchParams }: { searchParams: Promise<{ unavailable?: string }> }) {
   const current = await getCurrentProfile(); if (!current) redirect("/login"); if (current.profile?.role !== "STUDENT") redirect("/dashboard");

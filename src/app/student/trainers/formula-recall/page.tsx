@@ -8,7 +8,7 @@ import styles from "./formula-recall.module.css";
 import trainerStyles from "../trainers.module.css";
 import MasteredFormulas from "./mastered-formulas";
 
-export const metadata: Metadata = { title: "Formula Recall — NSP" };
+export const metadata: Metadata = { title: "Formula Recall — AKEDA" };
 
 export default async function FormulaRecallHomePage() {
   const current = await getCurrentProfile();

@@ -9,7 +9,7 @@ import { currentAlmatyDate, isMonday, mondayOf } from "@/lib/payments/week";
 import PaymentsTracker from "./payments-tracker";
 import styles from "./payments.module.css";
 
-export const metadata: Metadata = { title: "Оплаты — NSP" };
+export const metadata: Metadata = { title: "Оплаты — AKEDA" };
 
 export default function PaymentsPage({ searchParams }: { searchParams: Promise<{ week?: string | string[] }> }) { return <PageShell><PageHeader title="Оплаты" description="Учёт оплат по неделям и сводные поступления."/><PageContent><Suspense fallback={<PageContentLoading label="Загружаем оплаты"/>}><PaymentsContent searchParams={searchParams}/></Suspense></PageContent></PageShell>; }
 async function PaymentsContent({ searchParams }: { searchParams: Promise<{ week?: string | string[] }> }) {

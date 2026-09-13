@@ -4,10 +4,10 @@ import { getCurrentProfile } from "@/lib/auth/get-current-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type StudentMaterialFolder = { id: string; parentId: string | null; name: string };
-export type StudentMaterialItem = { id: string; folderId: string | null; type: "FILE" | "LINK"; title: string; description: string | null; originalFileName: string | null; mimeType: string | null; fileSize: number | null; externalUrl: string | null; createdAt: string; pinned: boolean };
+export type StudentMaterialItem = { id: string; folderId: string | null; type: "FILE" | "LINK" | "VIDEO" | "TEXT"; title: string; description: string | null; originalFileName: string | null; mimeType: string | null; fileSize: number | null; externalUrl: string | null; createdAt: string; pinned: boolean };
 
 type FolderRow = { id: string; parent_id: string | null; name: string };
-type MaterialRow = { id: string; folder_id: string | null; type: "FILE" | "LINK"; title: string; description: string | null; storage_path: string | null; original_file_name: string | null; mime_type: string | null; file_size: number | null; external_url: string | null; created_at: string };
+type MaterialRow = { id: string; folder_id: string | null; type: "FILE" | "LINK" | "VIDEO" | "TEXT"; title: string; description: string | null; storage_path: string | null; original_file_name: string | null; mime_type: string | null; file_size: number | null; external_url: string | null; created_at: string };
 
 export async function getActiveStudentContext() {
   const current = await getCurrentProfile();

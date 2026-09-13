@@ -49,7 +49,7 @@ export default function OverviewDashboard({ data, loadError, showHeader = true }
   }
   function openAttendance(lesson: OverviewLesson) { setAttendance(lesson.status === "NO_SHOW" ? "NO_SHOW" : lesson.status === "LATE_CANCELLED" ? "LATE_CANCELLED" : "ATTENDED"); setModal({ kind: "attendance", lesson }); }
   return <>
-    {showHeader ? <header className={styles.header}><span>NSP · Управление</span><h1>Обзор</h1><p>{data.dateLabel}</p></header> : <p style={{ margin: "0 0 18px", color: "#69746d" }}>{data.dateLabel}</p>}
+    {showHeader ? <header className={styles.header}><span>AKEDA · Управление</span><h1>Обзор</h1><p>{data.dateLabel}</p></header> : <p style={{ margin: "0 0 18px", color: "#69746d" }}>{data.dateLabel}</p>}
     <section className={styles.counters} aria-label="Показатели дня">
       <article><span>Уроков сегодня</span><strong>{data.counters.total}</strong></article>
       <article><span>Проведено</span><strong>{data.counters.held}</strong></article>

@@ -6,8 +6,8 @@ import LoginForm from "./login-form";
 import styles from "./login.module.css";
 
 export const metadata: Metadata = {
-  title: "Вход — NSP",
-  description: "Вход в личную учебную платформу NSP.",
+  title: "Вход — AKEDA",
+  description: "Вход в личную учебную платформу AKEDA.",
 };
 
 export default async function LoginPage() {
@@ -20,9 +20,9 @@ export default async function LoginPage() {
     <main className={styles.page}>
       <section className={styles.card} aria-labelledby="login-title">
         <div className={styles.cardTop}>
-          <Link className={styles.brand} href="/" aria-label="NSP — на главную">
-            <span className={styles.brandMark}>N</span>
-            <span>NSP</span>
+          <Link className={styles.brand} href="/" aria-label="AKEDA — на главную">
+            <span className={styles.brandMark}>A</span>
+            <span>AKEDA</span>
           </Link>
           <span className={styles.accentDot} aria-hidden="true" />
         </div>

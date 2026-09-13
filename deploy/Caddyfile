@@ -1,0 +1,6 @@
+akeda.kz {
+    reverse_proxy app:3000
+}
+www.akeda.kz {
+    redir https://akeda.kz{uri} permanent
+}

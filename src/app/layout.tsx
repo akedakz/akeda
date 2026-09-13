@@ -3,8 +3,8 @@ import "katex/dist/katex.min.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NSP — физика и математика",
-  description: "Индивидуальные онлайн-занятия по физике и математике с Арманом Бисембаевым и личная учебная платформа.",
+  title: "AKEDA — математика с Адильжаном Ажагалиевым",
+  description: "Индивидуальные онлайн-занятия по математике с Адильжаном Ажагалиевым и личная учебная платформа.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

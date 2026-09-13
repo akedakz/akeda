@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-const whatsappUrl = `https://wa.me/77051586877?text=${encodeURIComponent(
-  "Здравствуйте! Хочу узнать подробнее о занятиях по физике и математике.",
+const whatsappUrl = `https://wa.me/77776902712?text=${encodeURIComponent(
+  "Здравствуйте! Хочу узнать подробнее о занятиях по математике.",
 )}`;
 
 const directions = [
@@ -15,21 +15,21 @@ const directions = [
   {
     number: "02",
     title: "Подготовка к экзаменам",
-    text: "Системная подготовка к школьным и международным экзаменам с диагностикой и регулярным контролем результата.",
+    text: "Системная подготовка к экзаменам по математике с диагностикой и регулярным контролем результата.",
     color: "blue",
     tag: "Экзамены",
   },
   {
     number: "03",
-    title: "Международные программы",
-    text: "Физика и математика на русском и английском языках для IB, A-Level, IGCSE и других программ.",
+    title: "Разбор сложных задач",
+    text: "Работаем с математическими задачами вашей программы: разбираем условия, выбираем метод и проверяем решение.",
     color: "yellow",
-    tag: "IB · A-Level",
+    tag: "Практика",
   },
   {
     number: "04",
     title: "Университетская программа",
-    text: "Помощь с механикой, термодинамикой, электричеством, математическим анализом и другими университетскими дисциплинами.",
+    text: "Разбор математического анализа, алгебры и других тем по вашей учебной программе.",
     color: "coral",
     tag: "Университет",
   },
@@ -50,9 +50,9 @@ export default function Home() {
   return (
     <main>
       <header className="site-header">
-        <a className="brand" href="#top" aria-label="NSP — на главную">
-          <span className="brand-mark">N</span>
-          <span>NSP</span>
+        <a className="brand" href="#top" aria-label="AKEDA — на главную">
+          <span className="brand-mark">A</span>
+          <span>AKEDA</span>
         </a>
         <nav className="desktop-nav" aria-label="Основная навигация">
           <a href="#directions">Программы</a>
@@ -68,7 +68,7 @@ export default function Home() {
       <section className="hero section-shell" id="top">
         <div className="hero-copy">
           <div className="eyebrow"><span /> Индивидуальные онлайн-занятия</div>
-          <h1>Физика и<br /><em>математика.</em></h1>
+          <h1>Математика.<br /><em>Шаг за шагом.</em></h1>
           <p className="hero-lead">
             Персональные занятия с преподавателем и личная учебная платформа — всё необходимое для понятного и измеримого прогресса.
           </p>
@@ -77,37 +77,37 @@ export default function Home() {
             <Link className="button hero-login-button" href="/login">Войти</Link>
           </div>
           <div className="hero-proof stats-row">
-            <p><strong>7+ лет</strong><br />преподавания</p>
-            <p><strong>200+</strong><br />учеников</p>
+            <p><strong>Онлайн</strong><br />занятия из дома</p>
+            <p><strong>Личный кабинет</strong><br />материалы и задания</p>
             <p><strong>1 на 1</strong><br />индивидуальный подход</p>
           </div>
         </div>
 
         <div className="lesson-card dashboard-card" id="cabinet" aria-label="Интерфейс личного кабинета ученика">
           <div className="dashboard-header">
-            <div><span className="dashboard-kicker">Личный кабинет</span><h2>Добрый день, Алихан!</h2></div>
+            <div><span className="dashboard-kicker">Пример личного кабинета</span><h2>Добрый день, Алихан!</h2></div>
             <span className="profile-dot">А</span>
           </div>
           <div className="next-lesson">
             <div className="lesson-date"><strong>24</strong><span>сент</span></div>
-            <div><span>Следующее занятие</span><h3>Механика: законы Ньютона</h3><p>Сегодня · 17:00–18:00</p></div>
+            <div><span>Следующее занятие</span><h3>Алгебра: квадратные уравнения</h3><p>Сегодня · 17:00–18:00</p></div>
             <span className="video-button" aria-hidden="true">→</span>
           </div>
           <div className="dashboard-grid">
             <article className="progress-widget">
               <span>Прогресс курса</span>
               <div className="progress-circle"><strong>68%</strong></div>
-              <p>Физика · Механика</p>
+              <p>Математика · Алгебра</p>
             </article>
             <article className="homework-widget">
               <span>Домашнее задание</span>
-              <h3>Законы Ньютона</h3>
+              <h3>Квадратные уравнения</h3>
               <p>8 из 10 заданий выполнено</p>
               <div className="progress homework-progress"><span /></div>
             </article>
           </div>
           <div className="test-widget">
-            <div><span>Последний тест</span><h3>Механика</h3></div>
+            <div><span>Последний тест</span><h3>Алгебра</h3></div>
             <div className="test-score"><strong>9/10</strong><span>отличный результат</span></div>
           </div>
           <div className="floating-badge"><span>↑</span> прогресс за месяц</div>
@@ -115,7 +115,7 @@ export default function Home() {
       </section>
 
       <section className="marquee" aria-label="Направления обучения">
-        <span>Физика</span><i>✦</i><span>Математика</span><i>✦</i><span>Экзамены</span><i>✦</i><span>Международные программы</span><i>✦</i><span>Школьная программа</span>
+        <span>Алгебра</span><i>✦</i><span>Математика</span><i>✦</i><span>Экзамены</span><i>✦</i><span>Разбор сложных задач</span><i>✦</i><span>Школьная программа</span>
       </section>
 
       <section className="courses section-shell" id="directions">
@@ -163,19 +163,19 @@ export default function Home() {
         <div className="teacher-copy">
           <span className="section-number">03</span>
           <p className="method-label teacher-label">Преподаватель</p>
-          <h2>Арман <em>Бисембаев</em></h2>
-          <h3>Преподаватель физики и математики</h3>
-          <p>Преподаватель физики и математики с опытом более 7 лет. Работаю со школьниками, абитуриентами и студентами университетов. Помогаю выстроить прочную базу, подготовиться к экзаменам и разобраться со сложными темами без механического заучивания.</p>
-          <p className="teacher-directions">Направления: школьная программа, международные программы, экзамены, олимпиадная подготовка и университетская физика.</p>
-          <div className="teacher-facts"><span><strong>7+</strong> лет опыта</span><span><strong>200+</strong> учеников</span></div>
+          <h2>Адильжан <em>Ажагалиев</em></h2>
+          <h3>Преподаватель математики</h3>
+          <p>Меня зовут Адильжан Ажагалиев. На индивидуальных занятиях по математике разбираем темы в вашем темпе. Помогаю выстроить прочную базу, подготовиться к экзаменам и разобраться со сложными темами без механического заучивания.</p>
+          <p className="teacher-directions">Содержание занятий и учебную цель обсудим перед началом работы.</p>
+          <div className="teacher-facts"><span><strong>1 на 1</strong> индивидуальные занятия</span><span><strong>Онлайн</strong> удобный формат</span></div>
         </div>
       </section>
 
       <footer className="footer section-shell">
-        <a className="brand" href="#top"><span className="brand-mark">N</span><span>NSP</span></a>
-        <p>Физика и математика.</p>
-        <div><a href="#directions">Программы</a><a href="#teacher">Преподаватель</a><a href="mailto:hello@nsp.ru">Связаться</a></div>
-        <span>© 2026 NSP</span>
+        <a className="brand" href="#top"><span className="brand-mark">A</span><span>AKEDA</span></a>
+        <p>Математика с Адильжаном Ажагалиевым.</p>
+        <div><a href="#directions">Программы</a><a href="#teacher">Преподаватель</a><a href={whatsappUrl} target="_blank" rel="noopener noreferrer">Связаться</a></div>
+        <span>© 2026 AKEDA</span>
       </footer>
     </main>
   );

@@ -7,7 +7,7 @@ import TheoryRunner from "./theory-runner";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { issueTheoryQuestion } from "@/lib/trainers/theory-runtime";
 
-export const metadata: Metadata = { title: "Тренажёр — NSP" };
+export const metadata: Metadata = { title: "Тренажёр — AKEDA" };
 export default async function TrainerRunnerPage({ params }: { params: Promise<{ assignmentId: string }> }) {
   const current = await getCurrentProfile(); if (!current) redirect("/login"); if (current.profile?.role !== "STUDENT") redirect("/dashboard");
   if (current.profile.student_status !== "ACTIVE") redirect("/dashboard");

@@ -40,7 +40,7 @@ export default function StudentCreatePanel({ children }: { children: ReactNode }
 
   return (
     <PageShell>
-      <PageHeader title="Ученики" description="Управление аккаунтами учеников NSP." actions={
+      <PageHeader title="Ученики" description="Управление аккаунтами учеников AKEDA." actions={
         <button
           className={styles.addLink}
           type="button"

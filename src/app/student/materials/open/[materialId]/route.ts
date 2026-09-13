@@ -12,9 +12,10 @@ export async function GET(_: Request, { params }: { params: Promise<{ materialId
   if (material.raw.type === "FILE" && material.raw.storage_path) {
     const signed = await context.admin.storage.from("materials").createSignedUrl(material.raw.storage_path, 5 * 60);
     if (!signed.error) destination = signed.data.signedUrl;
-  } else if (material.raw.type === "LINK" && material.raw.external_url) {
+  } else if ((material.raw.type === "LINK" || material.raw.type === "VIDEO") && material.raw.external_url) {
     try { const url = new URL(material.raw.external_url); if (url.protocol === "http:" || url.protocol === "https:") destination = url.toString(); } catch { destination = null; }
   }
+  if (material.raw.type === "TEXT") destination = new URL(`/student/materials/text/${materialId}`, _.url).toString();
   if (!destination) return new NextResponse("Не удалось открыть материал. Попробуйте ещё раз.", { status: 422 });
 
   const view = await context.admin.rpc("record_student_material_view", { p_student_id: context.studentId, p_material_item_id: materialId });

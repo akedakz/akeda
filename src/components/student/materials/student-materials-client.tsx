@@ -10,19 +10,20 @@ export function MaterialRows({ folders, materials }: { folders: StudentMaterialF
   return <div className={styles.list}>
     {folders.map((folder) => <Link className={styles.row} href={`/student/materials/folders/${folder.id}`} key={folder.id}><span className={styles.icon}>▰</span><span className={styles.info}><strong>{folder.name}</strong><small>Папка</small></span><b aria-hidden>→</b></Link>)}
     {materials.filter((item) => item.type === "FILE").map((item) => <MaterialRow item={item} key={item.id}/>)}
-    {materials.filter((item) => item.type === "LINK").map((item) => <MaterialRow item={item} key={item.id}/>)}
+    {materials.filter((item) => item.type !== "FILE").map((item) => <MaterialRow item={item} key={item.id}/>)}
   </div>;
 }
 
 export function MaterialRow({ item, compact = false }: { item: StudentMaterialItem; compact?: boolean }) {
   const [pinned, setPinned] = useState(item.pinned);
   const [pending, startTransition] = useTransition();
+  const typeLabel = { FILE: "Файл", LINK: "Ссылка", VIDEO: "Видео", TEXT: "Текст" }[item.type];
   const meta = item.type === "FILE" ? [extension(item.originalFileName ?? item.title), item.fileSize ? formatSize(item.fileSize) : null].filter(Boolean).join(" · ") : safeDomain(item.externalUrl);
   return <div className={`${styles.row} ${compact ? styles.compact : ""}`}>
     <span className={styles.icon}>{item.type === "FILE" ? "▤" : "↗"}</span>
-    <span className={styles.info}><strong>{item.title}</strong>{item.description && !compact && <span>{item.description}</span>}<small>{item.type === "FILE" ? `Файл${meta ? ` · ${meta}` : ""}` : `Ссылка${meta ? ` · ${meta}` : ""}`}</small></span>
+    <span className={styles.info}><strong>{item.title}</strong>{item.description && !compact && <span>{item.description}</span>}<small>{`${typeLabel}${meta ? ` · ${meta}` : ""}`}</small></span>
     <button className={styles.pin} disabled={pending} aria-label={pinned ? "Открепить материал" : "Закрепить материал"} aria-pressed={pinned} onClick={() => { const next = !pinned; setPinned(next); startTransition(async () => { const result = await toggleStudentMaterialPin(item.id, next); if (!result.ok) setPinned(!next); }); }}>{pinned ? "◆" : "◇"}</button>
-    <a className={styles.open} href={`/student/materials/open/${item.id}`} target="_blank" rel="noopener noreferrer">{item.type === "FILE" ? "Открыть" : "Перейти"}</a>
+    <a className={styles.open} href={`/student/materials/open/${item.id}`} target="_blank" rel="noopener noreferrer">{item.type === "FILE" || item.type === "TEXT" ? "Открыть" : "Перейти"}</a>
   </div>;
 }
 

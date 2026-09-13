@@ -7,7 +7,7 @@ import TheoryLibrary from "./theory-library";
 import studentStyles from "@/app/student/trainers/trainers.module.css";
 import type { TrainerGroup } from "@/lib/trainers/trainer-groups";
 
-export const metadata: Metadata = { title: "Theory — NSP" };
+export const metadata: Metadata = { title: "Theory — AKEDA" };
 type Row = { id: string; title: string; status: TheoryStatus; definition: TheoryDefinition; content_revision: number; updated_at: string;group_id:string|null };
 
 export default async function AdminTheoryPage() {

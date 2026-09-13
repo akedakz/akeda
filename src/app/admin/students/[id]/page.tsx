@@ -14,7 +14,7 @@ import type { StudentStatus } from "@/types/profile";
 import StudentTabContent from "./student-tab-content";
 import styles from "./student.module.css";
 
-export const metadata: Metadata = { title: "Страница ученика — NSP" };
+export const metadata: Metadata = { title: "Страница ученика — AKEDA" };
 
 type PageProps = {
   params: Promise<{ id: string }>;

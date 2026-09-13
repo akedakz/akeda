@@ -6,7 +6,7 @@ import type { TrainerDefinition } from "@/lib/trainers/trainer-import";
 import { createQuickProblemPreviewSession } from "@/lib/trainers/quick-problem-runner-server";
 import QuickProblemsRunner from "@/app/student/trainers/[assignmentId]/quick-problems-runner";
 
-export const metadata: Metadata = { title: "Предпросмотр Quick Problems — NSP" };
+export const metadata: Metadata = { title: "Предпросмотр Quick Problems — AKEDA" };
 
 export default async function QuickProblemsPreviewPage({ params }: { params: Promise<{ trainerId: string }> }) {
   const current = await getCurrentProfile();

@@ -5,7 +5,7 @@ import { loadTestLibrary } from "@/lib/tests/load-test-library";
 import TestLibraryExplorer from "./test-library-explorer";
 import styles from "./tests.module.css";
 
-export const metadata: Metadata = { title: "Тесты — NSP", description: "Библиотека тестов NSP." };
+export const metadata: Metadata = { title: "Тесты — AKEDA", description: "Библиотека тестов AKEDA." };
 
 export default async function TestsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sort = parseLibrarySort((await searchParams).sort);

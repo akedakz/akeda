@@ -9,7 +9,7 @@ import styles from "../trainers.module.css";
 import {groupTrainerItems} from "@/lib/trainers/trainer-groups";
 import {TrainerGroupSection} from "@/components/trainers/trainer-group-ui";
 
-export const metadata: Metadata = { title: "Quick Problems — NSP" };
+export const metadata: Metadata = { title: "Quick Problems — AKEDA" };
 
 export default async function StudentQuickProblemsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const current = await getCurrentProfile();
