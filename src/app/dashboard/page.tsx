@@ -45,5 +45,9 @@ export default async function DashboardPage() {
     redirect("/student");
   }
 
+  if (current.profile.role === "PARENT") {
+    redirect("/parent");
+  }
+
   return null;
 }

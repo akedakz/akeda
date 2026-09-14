@@ -7,6 +7,7 @@ import StudentTrainersPanel from "@/components/students/student-trainers-panel";
 import FormulaRecallAssignmentsPanel from "@/components/students/formula-recall-assignments-panel";
 import StudentMistakesCard from "@/components/students/student-mistakes-card";
 import StudentProgressPage from "@/components/student/progress/student-progress-page";
+import StudentParentFinancePanel from "@/components/students/student-parent-finance-panel";
 import type { StudentTopic } from "@/components/students/student-topic-types";
 import type { HomeworkRecord, LessonStatusOverride, ScheduleSlot, StudentLesson } from "@/components/students/student-lesson-types";
 import type { StudentFolderAccessItem, StudentMaterialAccessItem, StudentMaterialViewItem } from "@/components/students/student-material-types";
@@ -18,13 +19,14 @@ import { ensureStudentLessons } from "@/lib/lessons/lesson-generation";
 import { getLessonStatus } from "@/lib/lessons/lesson-status";
 import { formatMaterialViewDate } from "@/lib/materials/material-view-date";
 import { loadStudentProgressByStudentId } from "@/lib/progress/student-progress";
+import { loadStudentFinance } from "@/lib/finance/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadAdminStudentTrainerReadModel } from "@/lib/trainers/admin-student-read-model";
 
 import styles from "./student.module.css";
 
 type Query = Record<string, string | string[] | undefined>;
-type StudentProfile = { id: string; full_name: string | null; email: string | null; role: "STUDENT"; created_at: string; student_status: import("@/types/profile").StudentStatus | null; avatar_path: string | null };
+type StudentProfile = { id: string; full_name: string | null; email: string | null; role: "STUDENT"; created_at: string; student_status: import("@/types/profile").StudentStatus | null; avatar_path: string | null; parent_id: string | null };
 type Props = { student: StudentProfile; adminId: string; activeTab: StudentTab; query: Query };
 type AssignmentRow = { id: string; title: string; source_test_id: string | null; deadline_at: string | null; created_at: string };
 type AssignmentAttemptRow = { id: string; assignment_id: string; started_at: string; submitted_at: string | null; score: number | null; max_score: number | null };
@@ -47,9 +49,11 @@ export default async function StudentTabContent({ student, adminId, activeTab, q
 
 async function StudentTab({ student }: { student: StudentProfile }) {
   const admin = createAdminClient();
-  const [programsResult, assignedResult] = await Promise.all([
+  const [programsResult, assignedResult, parentsResult, finance] = await Promise.all([
     admin.from("learning_programs").select("id,name,is_active").order("name"),
     admin.from("student_learning_programs").select("program_id").eq("student_id", student.id),
+    admin.from("profiles").select("id,full_name,email").eq("role", "PARENT").order("full_name").order("id"),
+    loadStudentFinance(student.id),
   ]);
   let programs: { id: string; name: string; active: boolean }[] = [];
   let assignedIds: string[] = [];
@@ -58,7 +62,9 @@ async function StudentTab({ student }: { student: StudentProfile }) {
     programs = programsResult.data.map((program) => ({ id: program.id, name: program.name, active: program.is_active }));
     assignedIds = assignedResult.data.map((item) => item.program_id);
   }
-  return <Tab><StudentProfilePanel student={{ id: student.id, fullName: student.full_name ?? "Без имени", email: student.email ?? "", status: student.student_status, createdAt: student.created_at }}/><StudentProgramSelector studentId={student.id} programs={programs} assignedIds={assignedIds}/></Tab>;
+  const parents = (parentsResult.data ?? []).map((parent) => ({ id: parent.id, fullName: parent.full_name?.trim() || "Родитель", email: parent.email }));
+  const currentParent = parents.find((parent) => parent.id === student.parent_id) ?? null;
+  return <Tab><StudentProfilePanel student={{ id: student.id, fullName: student.full_name ?? "Без имени", email: student.email ?? "", status: student.student_status, createdAt: student.created_at }}/><StudentParentFinancePanel studentId={student.id} parents={parents} currentParent={currentParent} finance={finance}/><StudentProgramSelector studentId={student.id} programs={programs} assignedIds={assignedIds}/></Tab>;
 }
 
 async function LessonsTab({ studentId, query }: { studentId: string; query: Query }) {

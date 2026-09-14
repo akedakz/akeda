@@ -20,7 +20,7 @@ export const getCurrentProfile = cache(async function getCurrentProfile(): Promi
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role, student_status, avatar_path, avatar_updated_at")
+    .select("id, email, full_name, role, student_status, parent_id, avatar_path, avatar_updated_at")
     .eq("id", user.id)
     .maybeSingle();
 
