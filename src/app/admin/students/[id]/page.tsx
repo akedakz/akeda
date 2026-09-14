@@ -29,6 +29,7 @@ type StudentProfile = {
   created_at: string;
   student_status: StudentStatus | null;
   avatar_path: string | null;
+  parent_id: string | null;
 };
 
 const statusLabels: Record<StudentStatus, string> = {
@@ -45,7 +46,7 @@ export default async function StudentPage({ params, searchParams }: PageProps) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const activeTab = parseStudentTab(query.tab);
   const admin = createAdminClient();
-  const { data, error } = await admin.from("profiles").select("id, full_name, email, role, created_at, student_status, avatar_path").eq("id", id).eq("role", "STUDENT").maybeSingle();
+  const { data, error } = await admin.from("profiles").select("id, full_name, email, role, created_at, student_status, avatar_path, parent_id").eq("id", id).eq("role", "STUDENT").maybeSingle();
   if (error || !data) notFound();
 
   const student = data as StudentProfile;
