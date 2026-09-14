@@ -11,7 +11,7 @@ export async function login(previousState: LoginState, formData: FormData): Prom
   const password = String(formData.get("password") ?? "");
   if (!email || !password) return { message: "Введите электронную почту и пароль." };
 
-  let destination: "/admin" | "/student" | null = null;
+  let destination: "/admin" | "/student" | "/parent" | null = null;
   try {
     const supabase = await createClient({ requireCookieWrites: true });
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
@@ -53,6 +53,8 @@ export async function login(previousState: LoginState, formData: FormData): Prom
         return { message: "Аккаунт ученика пока недоступен." };
       }
       destination = "/student";
+    } else if (profile.role === "PARENT") {
+      destination = "/parent";
     } else {
       await supabase.auth.signOut({ scope: "local" });
       return { message: "Не удалось определить роль пользователя." };
