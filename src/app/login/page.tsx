@@ -14,6 +14,7 @@ export default async function LoginPage() {
   const current = await getCurrentProfile();
   if (current?.profile?.role === "ADMIN") redirect("/admin");
   if (current?.profile?.role === "STUDENT") redirect("/student");
+  if (current?.profile?.role === "PARENT") redirect("/parent");
   if (current) redirect("/dashboard");
 
   return (
