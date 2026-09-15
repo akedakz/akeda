@@ -8,7 +8,7 @@ import styles from "./student-tabs.module.css";
 const items: { value: StudentTab; label: string; icon: string }[] = [
   { value: "student", label: "Ученик", icon: "◉" },
   { value: "lessons", label: "Уроки", icon: "▣" },
-  { value: "progress", label: "Прогресс тем", icon: "◫" },
+  { value: "progress", label: "Прогресс программ", icon: "◫" },
   { value: "materials", label: "Материалы", icon: "◇" },
   { value: "tests", label: "Тесты", icon: "✓" },
   { value: "trainers", label: "Тренажёры", icon: "◎" },
