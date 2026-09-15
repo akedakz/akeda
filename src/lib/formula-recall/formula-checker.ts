@@ -289,20 +289,41 @@ function proportional(a: Polynomial, b: Polynomial) {
   });
 }
 
-function equationNumerator(engine: ComputeEngine, latex: string): Polynomial {
+type EquationModel = {
+  numerator: Polynomial;
+  sides: [unknown, unknown];
+};
+
+function equationModel(engine: ComputeEngine, latex: string): EquationModel {
   const expression = engine.parse(normalizeFormulaLatex(latex));
   if (!expression.isValid || expression.errors.length || expression.subexpressions.length > MAX_TERMS) throw new UnsupportedExpressionError();
   assertMathematicalJson(expression.json);
   const operands = (expression as unknown as { ops: readonly Expression[] }).ops;
   if (expression.operator !== "Equal" || operands.length !== 2) throw new UnsupportedExpressionError("equation");
+  const sides: [unknown, unknown] = [operands[0].json, operands[1].json];
+  assertMathematicalJson(sides[0]);
+  assertMathematicalJson(sides[1]);
   const residual: Expression = operands[0].sub(operands[1]).simplify();
   if (!residual.isValid || residual.errors.length) throw new UnsupportedExpressionError();
   assertMathematicalJson(residual.json);
-  return fractionFromJson(residual.json).numerator;
+  return { numerator: fractionFromJson(residual.json).numerator, sides };
 }
 
-function compare(engine: ComputeEngine, student: Polynomial, accepted: string) {
-  return proportional(student, equationNumerator(engine, accepted));
+function sameEquationStructure(a: EquationModel, b: EquationModel) {
+  const [aLeft, aRight] = a.sides.map((side) => JSON.stringify(side));
+  const [bLeft, bRight] = b.sides.map((side) => JSON.stringify(side));
+  return (aLeft === bLeft && aRight === bRight) || (aLeft === bRight && aRight === bLeft);
+}
+
+function compare(engine: ComputeEngine, student: EquationModel, accepted: string) {
+  const reference = equationModel(engine, accepted);
+  if (proportional(student.numerator, reference.numerator)) return true;
+  // Identities such as x^{-m}=1/x^m reduce to 0=0. Keep their original
+  // equation structure so an exact/reversed identity is accepted without
+  // allowing an unrelated tautology such as y=y.
+  return student.numerator.size === 0
+    && reference.numerator.size === 0
+    && sameEquationStructure(student, reference);
 }
 
 export function checkFormulaAnswer(input: FormulaCheckInput): FormulaCheckResult {
@@ -322,7 +343,7 @@ export function checkFormulaAnswer(input: FormulaCheckInput): FormulaCheckResult
     for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") {
       if (letter !== "e" && letter !== "i") engine.declare(letter, "number");
     }
-    const student = equationNumerator(engine, studentText);
+    const student = equationModel(engine, studentText);
     const accepted = [input.canonicalExpression, ...alternatives];
     let validAcceptedExpression = false;
     let validCanonical = false;
