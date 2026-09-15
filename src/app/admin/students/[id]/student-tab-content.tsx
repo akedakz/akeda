@@ -2,6 +2,7 @@ import StudentMaterialsAdminPanel from "@/components/students/student-materials-
 import StudentLessonsPanel from "@/components/students/student-lessons-panel";
 import StudentProfilePanel from "@/components/students/student-profile-panel";
 import StudentProgramSelector from "@/components/students/student-program-selector";
+import StudentProgramProgressPanel from "@/components/students/student-program-progress-panel";
 import StudentTopicsPanel from "@/components/students/student-topics-panel";
 import StudentTrainersPanel from "@/components/students/student-trainers-panel";
 import FormulaRecallAssignmentsPanel from "@/components/students/formula-recall-assignments-panel";
@@ -20,6 +21,7 @@ import { getLessonStatus } from "@/lib/lessons/lesson-status";
 import { formatMaterialViewDate } from "@/lib/materials/material-view-date";
 import { loadStudentProgressByStudentId } from "@/lib/progress/student-progress";
 import { loadStudentFinance } from "@/lib/finance/server";
+import { loadStudentLearningProgramProgress } from "@/lib/programs/load-student-program-progress";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadAdminStudentTrainerReadModel } from "@/lib/trainers/admin-student-read-model";
 
@@ -113,10 +115,43 @@ async function LessonsTab({ studentId, query }: { studentId: string; query: Quer
 
 async function TopicsTab({ studentId }: { studentId: string }) {
   const admin = createAdminClient();
-  const { data, error } = await admin.from("student_topics").select("id, title, sort_order, completed_at").eq("student_id", studentId).order("sort_order");
-  if (error) console.error("Не удалось загрузить темы ученика:", { code: error.code, message: error.message, details: error.details, hint: error.hint });
-  const topics: StudentTopic[] = (data ?? []).map((topic) => ({ id: topic.id, title: topic.title, sortOrder: topic.sort_order, completedAt: topic.completed_at }));
-  return <Tab><StudentTopicsPanel key={topics.map((topic) => `${topic.id}:${topic.completedAt ?? ""}`).join("|")} studentId={studentId} initialTopics={topics}/></Tab>;
+  const [programProgress, legacyResult] = await Promise.all([
+    loadStudentLearningProgramProgress(admin, studentId),
+    admin.from("student_topics").select("id, title, sort_order, completed_at").eq("student_id", studentId).order("sort_order"),
+  ]);
+
+  if (legacyResult.error) {
+    console.error("Не удалось загрузить индивидуальные темы ученика:", {
+      code: legacyResult.error.code,
+      message: legacyResult.error.message,
+      details: legacyResult.error.details,
+      hint: legacyResult.error.hint,
+    });
+  }
+
+  const legacyTopics: StudentTopic[] = (legacyResult.data ?? []).map((topic) => ({
+    id: topic.id,
+    title: topic.title,
+    sortOrder: topic.sort_order,
+    completedAt: topic.completed_at,
+  }));
+
+  return (
+    <Tab>
+      <StudentProgramProgressPanel
+        studentId={studentId}
+        programs={programProgress.programs}
+        loadError={programProgress.error}
+      />
+      {legacyTopics.length > 0 && (
+        <StudentTopicsPanel
+          key={legacyTopics.map((topic) => `${topic.id}:${topic.completedAt ?? ""}`).join("|")}
+          studentId={studentId}
+          initialTopics={legacyTopics}
+        />
+      )}
+    </Tab>
+  );
 }
 
 async function MaterialsTab({ studentId }: { studentId: string }) {
