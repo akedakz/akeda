@@ -31,7 +31,7 @@ export default function InstallApp() {
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      void navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
+      void navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" }).catch(() => {
         // Installation remains optional; never block the site if registration fails.
       });
     }
