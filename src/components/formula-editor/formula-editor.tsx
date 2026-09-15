@@ -104,15 +104,6 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
       field.setAttribute("aria-label", ariaLabel);
       field.setAttribute("aria-placeholder", placeholder);
       field.mathVirtualKeyboardPolicy = "manual";
-      const symbolicShortcuts = { ...field.inlineShortcuts };
-      delete symbolicShortcuts.mm;
-      delete symbolicShortcuts.cm;
-      delete symbolicShortcuts.km;
-      delete symbolicShortcuts.kg;
-      delete symbolicShortcuts.ft;
-      delete symbolicShortcuts.inch;
-      delete symbolicShortcuts.mi;
-      field.inlineShortcuts = symbolicShortcuts;
       field.smartFence = true;
       field.removeExtraneousParentheses = false;
       field.readOnly = readOnly || disabled;
