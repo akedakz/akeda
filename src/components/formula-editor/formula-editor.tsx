@@ -62,7 +62,6 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
   const onChangeRef = useRef(onChange);
   const valueRef = useRef(value);
   const lastValidValueRef = useRef(value);
-  const pendingInputValuesRef = useRef<string[]>([]);
   const lastSelectionRef = useRef<Selection | null>(null);
   const messageTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ready, setReady] = useState(false);
@@ -73,6 +72,7 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
   const locked = disabled || readOnly || !ready;
 
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+  useEffect(() => { valueRef.current = value; lastValidValueRef.current = value; }, [value]);
 
   const showStatus = useCallback((message: string) => {
     setStatusMessage(message);
@@ -104,6 +104,15 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
       field.setAttribute("aria-label", ariaLabel);
       field.setAttribute("aria-placeholder", placeholder);
       field.mathVirtualKeyboardPolicy = "manual";
+      const symbolicShortcuts = { ...field.inlineShortcuts };
+      delete symbolicShortcuts.mm;
+      delete symbolicShortcuts.cm;
+      delete symbolicShortcuts.km;
+      delete symbolicShortcuts.kg;
+      delete symbolicShortcuts.ft;
+      delete symbolicShortcuts.inch;
+      delete symbolicShortcuts.mi;
+      field.inlineShortcuts = symbolicShortcuts;
       field.smartFence = true;
       field.removeExtraneousParentheses = false;
       field.readOnly = readOnly || disabled;
@@ -159,10 +168,7 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
           showStatus("Формула слишком длинная");
           return;
         }
-        valueRef.current = nextValue;
         lastValidValueRef.current = nextValue;
-        pendingInputValuesRef.current.push(nextValue);
-        if (pendingInputValuesRef.current.length > 50) pendingInputValuesRef.current.splice(0, pendingInputValuesRef.current.length - 50);
         onChangeRef.current(nextValue);
       };
       handleFocus = () => setFocused(true);
@@ -209,18 +215,6 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
   }, [allowPaste, ariaLabel, disabled, maxExpressionLength, placeholder, readOnly, showStatus]);
 
   useEffect(() => {
-    const pending = pendingInputValuesRef.current;
-    const echoIndex = pending.lastIndexOf(value);
-    if (echoIndex >= 0) {
-      pending.splice(0, echoIndex + 1);
-      valueRef.current = value;
-      lastValidValueRef.current = value;
-      return;
-    }
-
-    pending.length = 0;
-    valueRef.current = value;
-    lastValidValueRef.current = value;
     const field = mathfieldRef.current;
     if (field && field.value !== value) field.value = value;
   }, [value]);
@@ -288,7 +282,6 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
       keyboard.hide();
       return;
     }
-
     const selection = cloneSelection(field.selection);
     setSymbolsOpen(false);
     field.focus();
