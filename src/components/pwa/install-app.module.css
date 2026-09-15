@@ -1,0 +1,82 @@
+.installButton {
+  position: fixed;
+  z-index: 900;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px 7px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: #142b23;
+  color: #fff;
+  box-shadow: 0 12px 35px rgba(20, 43, 35, .24);
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 13px;
+}
+.installButton:hover { transform: translateY(-1px); }
+.installButton:focus-visible { outline: 3px solid rgba(185, 237, 101, .7); outline-offset: 3px; }
+.mark, .sheetMark {
+  display: grid;
+  place-items: center;
+  background: #b9ed65;
+  color: #142b23;
+  font-weight: 900;
+}
+.mark { width: 34px; height: 34px; border-radius: 50% 50% 50% 10px; }
+.backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  padding: 18px;
+  background: rgba(9, 22, 17, .48);
+}
+.sheet {
+  position: relative;
+  width: min(460px, 100%);
+  padding: 28px;
+  border-radius: 22px;
+  background: #f7f8f1;
+  color: #142b23;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .2);
+}
+.close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(20, 43, 35, .08);
+  color: #142b23;
+  cursor: pointer;
+  font-size: 22px;
+}
+.sheetMark { width: 48px; height: 48px; border-radius: 50% 50% 50% 13px; }
+.sheet h2 { margin: 18px 0 8px; font-size: 25px; letter-spacing: -.035em; }
+.sheet p { margin: 0; color: #52635c; line-height: 1.55; }
+.sheet ol { margin: 20px 0; padding-left: 24px; }
+.sheet li { margin: 12px 0; line-height: 1.45; }
+.sheet .hint { font-size: 12px; color: #718078; }
+@media (max-width: 560px) {
+  .installButton {
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    min-height: 44px;
+    font-size: 12px;
+    padding-right: 13px;
+  }
+  .mark { width: 30px; height: 30px; }
+  .backdrop { padding: 10px; }
+  .sheet { padding: 24px 22px; border-radius: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .installButton { transition: none; }
+}
