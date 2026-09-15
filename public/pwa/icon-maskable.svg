@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="AKEDA">
+  <rect width="512" height="512" fill="#142b23"/>
+  <path d="M256 118c-76 0-138 62-138 138s62 140 138 140 138-64 138-140-62-138-138-138Z" fill="#b9ed65"/>
+  <path d="M256 165 165 346h51l18-39h46l21 39h50L256 165Zm0 77 18 40h-37l19-40Z" fill="#142b23"/>
+</svg>
