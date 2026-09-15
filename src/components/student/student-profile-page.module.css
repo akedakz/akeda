@@ -15,8 +15,8 @@
 .cardTitle h2 { margin: 0; color: #263a2e; font-size: 1.08rem; }
 .icon { width: 32px; height: 32px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 10px; background: #edf3ee; color: #315d40; }
 .icon svg { width: 18px; height: 18px; }
-.programs { display: flex; flex-wrap: wrap; gap: 8px; }
-.programs span { padding: 8px 11px; border: 1px solid #cbd9ce; border-radius: 999px; background: #f0f5f0; color: #315d40; font-size: .84rem; font-weight: 700; }
+.programSection { grid-column: 1/-1; }
+.programProgressList { display: grid; gap: 14px; }
 .empty { margin: 0; color: #748078; }
 .teacher { display: block; color: #263a2e; font-size: 1.18rem; }
 .whatsapp { margin-top: 15px; display: flex; justify-content: space-between; gap: 15px; padding: 12px; border-radius: 10px; background: #f3f6f2; color: #315d40; }
@@ -41,5 +41,5 @@
 .success strong { font-size: 1.3rem; }
 .success p { color: #6c7971; }
 .success button { margin-top: 10px; }
-@media (max-width:700px) { .profileCard { grid-template-columns: 1fr; gap: 24px; padding: 22px 18px; } .accountInfo { width: 100%; } .grid { grid-template-columns: 1fr; } .actions { grid-column: auto; } .card { padding: 18px; } .actionButtons { display: grid; } .actionButtons form, .actionButtons button { width: 100%; } .formActions { display: grid; } .formActions button { width: 100%; } }
+@media (max-width:700px) { .profileCard { grid-template-columns: 1fr; gap: 24px; padding: 22px 18px; } .accountInfo { width: 100%; } .grid { grid-template-columns: 1fr; } .programSection, .actions { grid-column: auto; } .card { padding: 18px; } .actionButtons { display: grid; } .actionButtons form, .actionButtons button { width: 100%; } .formActions { display: grid; } .formActions button { width: 100%; } }
 @media (max-width:420px) { .accountInfo > div { grid-template-columns: 1fr; gap: 4px; padding: 11px 0; } .whatsapp { align-items: flex-start; flex-direction: column; gap: 4px; } .whatsapp b { text-align: left; } }
