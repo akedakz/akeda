@@ -3,13 +3,15 @@
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { sendSupportMessage, signOutToHome, type SupportActionState } from "@/app/student/profile/actions";
+import ProgramProgressCard from "@/components/programs/program-progress-card";
+import type { LearningProgramProgress } from "@/components/programs/program-progress-types";
 import StudentNavIcon from "./student-nav-icon";
 import StudentProgressModal from "./progress/student-progress-modal";
 import StudentAvatarEditor from "./student-avatar-editor";
 import styles from "./student-profile-page.module.css";
 
 const statusLabels = { ACTIVE: "Активен", PAUSED: "Приостановлен", ARCHIVED: "В архиве" } as const;
-type Profile = { fullName: string; email: string; status: keyof typeof statusLabels | null; createdLabel: string; programs: string[] };
+type Profile = { fullName: string; email: string; status: keyof typeof statusLabels | null; createdLabel: string; programs: LearningProgramProgress[] };
 
 export default function StudentProfilePage({ profile, avatarUrl }: { profile: Profile; avatarUrl: string | null }) {
   const [reportOpen, setReportOpen] = useState(false);
@@ -25,9 +27,13 @@ export default function StudentProfilePage({ profile, avatarUrl }: { profile: Pr
     </section>
 
     <div className={styles.grid}>
-      <section className={styles.card}>
+      <section className={`${styles.card} ${styles.programSection}`}>
         <CardTitle icon="materials">Программа обучения</CardTitle>
-        {profile.programs.length ? <div className={styles.programs}>{profile.programs.map(program => <span key={program}>{program}</span>)}</div> : <p className={styles.empty}>Программа пока не назначена</p>}
+        {profile.programs.length ? (
+          <div className={styles.programProgressList}>
+            {profile.programs.map((program) => <ProgramProgressCard key={program.id} program={program}/>)}
+          </div>
+        ) : <p className={styles.empty}>Программа пока не назначена</p>}
       </section>
       <section className={styles.card}>
         <CardTitle icon="profile">Преподаватель</CardTitle>
