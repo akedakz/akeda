@@ -62,6 +62,7 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
   const onChangeRef = useRef(onChange);
   const valueRef = useRef(value);
   const lastValidValueRef = useRef(value);
+  const pendingInputValuesRef = useRef<string[]>([]);
   const lastSelectionRef = useRef<Selection | null>(null);
   const messageTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ready, setReady] = useState(false);
@@ -72,7 +73,6 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
   const locked = disabled || readOnly || !ready;
 
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
-  useEffect(() => { valueRef.current = value; lastValidValueRef.current = value; }, [value]);
 
   const showStatus = useCallback((message: string) => {
     setStatusMessage(message);
@@ -159,7 +159,10 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
           showStatus("Формула слишком длинная");
           return;
         }
+        valueRef.current = nextValue;
         lastValidValueRef.current = nextValue;
+        pendingInputValuesRef.current.push(nextValue);
+        if (pendingInputValuesRef.current.length > 50) pendingInputValuesRef.current.splice(0, pendingInputValuesRef.current.length - 50);
         onChangeRef.current(nextValue);
       };
       handleFocus = () => setFocused(true);
@@ -206,6 +209,18 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
   }, [allowPaste, ariaLabel, disabled, maxExpressionLength, placeholder, readOnly, showStatus]);
 
   useEffect(() => {
+    const pending = pendingInputValuesRef.current;
+    const echoIndex = pending.lastIndexOf(value);
+    if (echoIndex >= 0) {
+      pending.splice(0, echoIndex + 1);
+      valueRef.current = value;
+      lastValidValueRef.current = value;
+      return;
+    }
+
+    pending.length = 0;
+    valueRef.current = value;
+    lastValidValueRef.current = value;
     const field = mathfieldRef.current;
     if (field && field.value !== value) field.value = value;
   }, [value]);
@@ -265,15 +280,21 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
   }, [disabled, readOnly]);
 
   const preserveSelection = (event: React.PointerEvent<HTMLButtonElement>) => event.preventDefault();
-  const showKeyboard = useCallback(() => {
+  const toggleKeyboard = useCallback(() => {
     const field = mathfieldRef.current;
     if (!field || disabled || readOnly) return;
+    const keyboard = window.mathVirtualKeyboard;
+    if (keyboard.visible) {
+      keyboard.hide();
+      return;
+    }
+
     const selection = cloneSelection(field.selection);
     setSymbolsOpen(false);
     field.focus();
     field.selection = selection;
-    window.mathVirtualKeyboard.layouts = ["alphabetic", "numeric", "symbols", "greek"];
-    window.mathVirtualKeyboard.show();
+    keyboard.layouts = ["alphabetic", "numeric", "symbols", "greek"];
+    keyboard.show();
   }, [disabled, readOnly]);
   const focusSurface = useCallback(() => {
     const field = mathfieldRef.current;
@@ -300,7 +321,7 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
               {SYMBOLS.map(([glyph, latex]) => <button key={glyph} type="button" aria-label={`Вставить ${glyph}`} title={`Вставить ${glyph}`} onPointerDown={preserveSelection} onClick={() => { insert("text", latex); setSymbolsOpen(false); }}>{glyph}</button>)}
             </div>}
           </div>
-          <button className={styles.keyboardTrigger} type="button" aria-label="Открыть буквенно-цифровую клавиатуру" title="Буквы и цифры" disabled={locked} onPointerDown={preserveSelection} onClick={showKeyboard}>ABC</button>
+          <button className={styles.keyboardTrigger} type="button" aria-label="Открыть или закрыть буквенно-цифровую клавиатуру" title="Открыть или закрыть клавиатуру" disabled={locked} onPointerDown={preserveSelection} onClick={toggleKeyboard}>ABC</button>
           <div className={`${styles.toolGroup} ${styles.navigation}`}>
             <button type="button" aria-label="Курсор влево" title="Курсор влево" disabled={locked} onPointerDown={preserveSelection} onClick={() => command("moveToPreviousChar")}>←</button>
             <button type="button" aria-label="Курсор вправо" title="Курсор вправо" disabled={locked} onPointerDown={preserveSelection} onClick={() => command("moveToNextChar")}>→</button>
