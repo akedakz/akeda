@@ -9,7 +9,7 @@ const source = fs.readFileSync('src/components/formula-editor/formula-editor.tsx
 const css = fs.readFileSync('src/components/formula-editor/formula-editor.module.css', 'utf8');
 const practice = fs.readFileSync('src/app/student/trainers/formula-recall/formula-recall.module.css', 'utf8');
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
-const field = { value: 'N/t', selection: { direction: 'backward', ranges: [[1, 3]] }, selectionIsCollapsed: true,
+const field = { value: 'N/t', selection: { direction: 'backward', ranges: [[1, 3]] }, selectionIsCollapsed: true, inlineShortcuts: { mm: '\\operatorname{mm}', cm: '\\operatorname{cm}', pi: '\\pi' },
   focus() { this.focused = true; }, insert(value, options) { this.inserted = { value, options }; }, executeCommand(value) { this.command = value; } };
 const keyboard = { layouts: [], visible: false, show() { this.visible = true; this.shown = true; }, hide() { this.visible = false; this.hidden = true; } };
 let refIndex = 0;
@@ -28,8 +28,7 @@ check('ABC is separate, accessible and preserves pointer selection', () => {
   let prevented = false; abc.props.onPointerDown({ preventDefault() { prevented = true; } }); assert.ok(prevented);
 });
 check('ABC focuses same field, preserves value and selection, and toggles the virtual keyboard', () => {
-  const selection = JSON.stringify(field.selection);
-  abc.props.onClick();
+  const selection = JSON.stringify(field.selection); abc.props.onClick();
   assert.ok(field.focused); assert.ok(keyboard.shown); assert.equal(keyboard.visible, true); assert.equal(field.value, 'N/t');
   assert.equal(JSON.stringify(field.selection), selection);
   assert.ok(keyboard.layouts.includes('alphabetic')); assert.ok(keyboard.layouts.includes('numeric'));
@@ -43,9 +42,10 @@ check('disabled/read-only editor cannot open keyboard', () => {
     assert.equal(button.props.disabled, true); button.props.onClick(); assert.equal(keyboard.shown, false);
   }
 });
-check('controlled value sync ignores React echoes from native MathLive input', () => {
-  assert.match(source, /valueRef\.current = nextValue;[\s\S]{0,400}pendingInputValuesRef\.current\.push\(nextValue\);[\s\S]{0,400}onChangeRef\.current\(nextValue\)/);
-  assert.match(source, /const echoIndex = pending\.lastIndexOf\(value\);[\s\S]{0,300}if \(echoIndex >= 0\)/);
+check('symbolic editor disables unit shortcuts that collide with repeated variables', () => {
+  assert.match(source, /delete symbolicShortcuts\.mm/);
+  assert.match(source, /delete symbolicShortcuts\.cm/);
+  assert.match(source, /field\.inlineShortcuts = symbolicShortcuts/);
 });
 
 check('fraction/root/subscript/power retain MathLive placeholder insertion', () => {
