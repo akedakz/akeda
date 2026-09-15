@@ -256,12 +256,20 @@ function fractionFromJson(json: unknown): RationalPolynomial {
     if (right.numerator.size === 0) throw new UnsupportedExpressionError();
     return normalizeFraction({ numerator: multiplyPolynomial(left.numerator, right.denominator), denominator: multiplyPolynomial(left.denominator, right.numerator) });
   }
-  if (operator === "Power" && operands.length === 2 && typeof operands[1] === "number" && Number.isInteger(operands[1]) && Math.abs(operands[1]) <= MAX_POWER) {
-    const base = fractionFromJson(operands[0]);
+  if (operator === "Power" && operands.length === 2) {
     const exponent = operands[1];
-    if (exponent >= 0) return { numerator: powerPolynomial(base.numerator, exponent), denominator: powerPolynomial(base.denominator, exponent) };
-    if (base.numerator.size === 0) throw new UnsupportedExpressionError();
-    return { numerator: powerPolynomial(base.denominator, -exponent), denominator: powerPolynomial(base.numerator, -exponent) };
+    if (typeof exponent === "number" && Number.isInteger(exponent) && Math.abs(exponent) <= MAX_POWER) {
+      const base = fractionFromJson(operands[0]);
+      if (exponent >= 0) return { numerator: powerPolynomial(base.numerator, exponent), denominator: powerPolynomial(base.denominator, exponent) };
+      if (base.numerator.size === 0) throw new UnsupportedExpressionError();
+      return { numerator: powerPolynomial(base.denominator, -exponent), denominator: powerPolynomial(base.numerator, -exponent) };
+    }
+    if (Array.isArray(exponent) && exponent[0] === "Negate" && exponent.length === 2) {
+      return {
+        numerator: constantPolynomial(ONE),
+        denominator: atomPolynomial(["Power", operands[0], exponent[1]]),
+      };
+    }
   }
   return { numerator: atomPolynomial(json), denominator: constantPolynomial(ONE) };
 }
