@@ -319,14 +319,10 @@ function compare(engine: ComputeEngine, student: EquationModel, accepted: string
   const reference = equationModel(engine, accepted);
   // Formula Recall should always accept the same equation (or reversed sides)
   // even when the algebraic normalizer does not know a symbolic identity such
-  // as x^m*x^n=x^(m+n).
+  // as x^m*x^n=x^(m+n). The whole-equation structural match also keeps
+  // unrelated tautologies such as y=y from being accepted.
   if (sameEquationStructure(student, reference)) return true;
-  if (proportional(student.numerator, reference.numerator)) return true;
-  // Identities such as x^{-m}=1/x^m can reduce to 0=0. Keep the structural
-  // guard so unrelated tautologies such as y=y are not accepted.
-  return student.numerator.size === 0
-    && reference.numerator.size === 0
-    && sameEquationStructure(student, reference);
+  return proportional(student.numerator, reference.numerator);
 }
 
 export function checkFormulaAnswer(input: FormulaCheckInput): FormulaCheckResult {
