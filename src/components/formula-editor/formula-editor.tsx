@@ -17,7 +17,7 @@ export type FormulaEditorProps = {
   className?: string;
 };
 
-type InsertKind = "text" | "fraction" | "square" | "power" | "subscript" | "root" | "parentheses";
+type InsertKind = "text" | "fraction" | "square" | "power" | "subscript" | "root" | "nthRoot" | "parentheses";
 
 const SYMBOLS = [
   ["π", "\\pi"], ["Δ", "\\Delta"], ["θ", "\\theta"], ["λ", "\\lambda"],
@@ -35,6 +35,7 @@ const BUTTONS: ReadonlyArray<{ label: string; title: string; kind: InsertKind; v
   { label: "xⁿ", title: "Степень", kind: "power" },
   { label: "xₙ", title: "Нижний индекс", kind: "subscript" },
   { label: "√", title: "Квадратный корень", kind: "root" },
+  { label: "ⁿ√", title: "Корень n-й степени", kind: "nthRoot" },
   { label: "( )", title: "Скобки", kind: "parentheses" },
 ];
 
@@ -233,6 +234,9 @@ export default function FormulaEditor({ value, onChange, placeholder = "Введ
     } else if (kind === "root") {
       latex = selected ? `\\sqrt{${selected}}` : "\\sqrt{\\placeholder{}}";
       selectionMode = selected ? "after" : "placeholder";
+    } else if (kind === "nthRoot") {
+      latex = selected ? `\\sqrt[\\placeholder{}]{${selected}}` : "\\sqrt[\\placeholder{}]{\\placeholder{}}";
+      selectionMode = "placeholder";
     } else if (kind === "square") {
       const base = selected ? (compoundExpression(selected) ? `\\left(${selected}\\right)` : `{${selected}}`) : "";
       latex = `${base}^{2}`;
