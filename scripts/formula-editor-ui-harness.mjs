@@ -11,7 +11,7 @@ const practice = fs.readFileSync('src/app/student/trainers/formula-recall/formul
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
 const field = { value: 'N/t', selection: { direction: 'backward', ranges: [[1, 3]] }, selectionIsCollapsed: true,
   focus() { this.focused = true; }, insert(value, options) { this.inserted = { value, options }; }, executeCommand(value) { this.command = value; } };
-const keyboard = { layouts: [], show() { this.shown = true; } };
+const keyboard = { layouts: [], visible: false, show() { this.visible = true; this.shown = true; }, hide() { this.visible = false; this.hidden = true; } };
 let refIndex = 0;
 const hooks = { useRef: (value) => ({ current: refIndex++ === 1 ? field : value }), useState: (value) => [value === false ? true : value, () => {}], useEffect() {}, useCallback: (fn) => fn, useId: () => 'symbols' };
 const loadedModule = { exports: {} };
@@ -27,19 +27,27 @@ check('ABC is separate, accessible and preserves pointer selection', () => {
   assert.ok(abc.props['aria-label']); assert.ok(abc.props.title); assert.equal(abc.props.disabled, false);
   let prevented = false; abc.props.onPointerDown({ preventDefault() { prevented = true; } }); assert.ok(prevented);
 });
-check('ABC focuses same field, preserves value and selection, opens letters and digits', () => {
-  const selection = JSON.stringify(field.selection); abc.props.onClick();
-  assert.ok(field.focused); assert.ok(keyboard.shown); assert.equal(field.value, 'N/t');
+check('ABC focuses same field, preserves value and selection, and toggles the virtual keyboard', () => {
+  const selection = JSON.stringify(field.selection);
+  abc.props.onClick();
+  assert.ok(field.focused); assert.ok(keyboard.shown); assert.equal(keyboard.visible, true); assert.equal(field.value, 'N/t');
   assert.equal(JSON.stringify(field.selection), selection);
   assert.ok(keyboard.layouts.includes('alphabetic')); assert.ok(keyboard.layouts.includes('numeric'));
+  abc.props.onClick();
+  assert.equal(keyboard.visible, false); assert.ok(keyboard.hidden);
 });
 check('disabled/read-only editor cannot open keyboard', () => {
   for (const props of [{ disabled: true }, { readOnly: true }]) {
-    keyboard.shown = false;
+    keyboard.shown = false; keyboard.hidden = false; keyboard.visible = false;
     const button = flatten(render(props)).find((n) => n.type === 'button' && n.props.children === 'ABC');
     assert.equal(button.props.disabled, true); button.props.onClick(); assert.equal(keyboard.shown, false);
   }
 });
+check('controlled value sync ignores React echoes from native MathLive input', () => {
+  assert.match(source, /valueRef\.current = nextValue;[\s\S]{0,400}pendingInputValuesRef\.current\.push\(nextValue\);[\s\S]{0,400}onChangeRef\.current\(nextValue\)/);
+  assert.match(source, /const echoIndex = pending\.lastIndexOf\(value\);[\s\S]{0,300}if \(echoIndex >= 0\)/);
+});
+
 check('fraction/root/subscript/power retain MathLive placeholder insertion', () => {
   for (const [label, prefix] of [['a⁄b', '\\frac'], ['√', '\\sqrt'], ['xₙ', '_'], ['xⁿ', '^']]) {
     buttons.find((n) => n.props.children === label).props.onClick();
