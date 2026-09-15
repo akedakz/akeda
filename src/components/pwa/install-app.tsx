@@ -19,10 +19,14 @@ function isIOS() {
     || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 }
 
+function isAndroid() {
+  return /android/i.test(navigator.userAgent);
+}
+
 export default function InstallApp() {
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
-  const [iosAvailable, setIosAvailable] = useState(false);
-  const [showIOSHelp, setShowIOSHelp] = useState(false);
+  const [mobilePlatform, setMobilePlatform] = useState<"ios" | "android" | null>(null);
+  const [showManualHelp, setShowManualHelp] = useState(false);
   const [installed, setInstalled] = useState(false);
 
   useEffect(() => {
@@ -37,7 +41,7 @@ export default function InstallApp() {
       return;
     }
 
-    setIosAvailable(isIOS());
+    setMobilePlatform(isIOS() ? "ios" : isAndroid() ? "android" : null);
 
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
@@ -46,7 +50,7 @@ export default function InstallApp() {
     const handleInstalled = () => {
       setInstalled(true);
       setPromptEvent(null);
-      setShowIOSHelp(false);
+      setShowManualHelp(false);
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -57,11 +61,11 @@ export default function InstallApp() {
     };
   }, []);
 
-  if (installed || (!promptEvent && !iosAvailable)) return null;
+  if (installed || (!promptEvent && !mobilePlatform)) return null;
 
   const install = async () => {
     if (!promptEvent) {
-      setShowIOSHelp(true);
+      setShowManualHelp(true);
       return;
     }
 
@@ -78,21 +82,35 @@ export default function InstallApp() {
         <span>Установить AKEDA</span>
       </button>
 
-      {showIOSHelp && (
+      {showManualHelp && (
         <div className={styles.backdrop} onPointerDown={(event) => {
-          if (event.target === event.currentTarget) setShowIOSHelp(false);
+          if (event.target === event.currentTarget) setShowManualHelp(false);
         }}>
-          <section className={styles.sheet} role="dialog" aria-modal="true" aria-labelledby="pwa-ios-title">
-            <button className={styles.close} type="button" aria-label="Закрыть" onClick={() => setShowIOSHelp(false)}>×</button>
+          <section className={styles.sheet} role="dialog" aria-modal="true" aria-labelledby="pwa-install-title">
+            <button className={styles.close} type="button" aria-label="Закрыть" onClick={() => setShowManualHelp(false)}>×</button>
             <span className={styles.sheetMark} aria-hidden="true">A</span>
-            <h2 id="pwa-ios-title">Установить AKEDA</h2>
-            <p>На iPhone и iPad установка делается через меню браузера:</p>
-            <ol>
-              <li>Нажмите <strong>«Поделиться»</strong>.</li>
-              <li>Выберите <strong>«На экран „Домой“»</strong>.</li>
-              <li>Нажмите <strong>«Добавить»</strong>.</li>
-            </ol>
-            <p className={styles.hint}>Если пункта нет, откройте akeda.kz в Safari и повторите эти шаги.</p>
+            <h2 id="pwa-install-title">Установить AKEDA</h2>
+            {mobilePlatform === "ios" ? (
+              <>
+                <p>На iPhone и iPad установка делается через меню браузера:</p>
+                <ol>
+                  <li>Нажмите <strong>«Поделиться»</strong>.</li>
+                  <li>Выберите <strong>«На экран „Домой“»</strong>.</li>
+                  <li>Нажмите <strong>«Добавить»</strong>.</li>
+                </ol>
+                <p className={styles.hint}>Если пункта нет, откройте akeda.kz в Safari и повторите эти шаги.</p>
+              </>
+            ) : (
+              <>
+                <p>Если системное окно установки ещё не появилось:</p>
+                <ol>
+                  <li>Откройте меню браузера <strong>⋮</strong>.</li>
+                  <li>Выберите <strong>«Установить приложение»</strong> или <strong>«Добавить на главный экран»</strong>.</li>
+                  <li>Подтвердите установку AKEDA.</li>
+                </ol>
+                <p className={styles.hint}>После установки AKEDA будет открываться отдельным окном без адресной строки браузера.</p>
+              </>
+            )}
           </section>
         </div>
       )}
