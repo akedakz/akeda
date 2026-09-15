@@ -168,3 +168,68 @@ $$;
 
 revoke all on function public.toggle_student_learning_program_topic(uuid, uuid) from public, anon, authenticated;
 grant execute on function public.toggle_student_learning_program_topic(uuid, uuid) to service_role;
+
+
+-- Preserve progress when an admin edits a student's program selection.
+-- The previous implementation deleted every assignment and reinserted it,
+-- which would also delete progress rows through the foreign key cascade.
+create or replace function public.replace_student_learning_programs(
+  p_student_id uuid,
+  p_program_ids uuid[]
+) returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform 1
+  from public.profiles
+  where id = p_student_id
+    and role = 'STUDENT'
+  for update;
+
+  if not found then
+    raise exception 'invalid student';
+  end if;
+
+  if p_program_ids is null
+     or cardinality(p_program_ids) > 2
+     or cardinality(p_program_ids) <> (
+       select count(distinct id)
+       from unnest(p_program_ids) selected(id)
+     ) then
+    raise exception 'invalid program set';
+  end if;
+
+  if exists (
+    select 1
+    from unnest(p_program_ids) selected(id)
+    left join public.learning_programs program
+      on program.id = selected.id
+    where program.id is null
+       or (
+         not program.is_active
+         and not exists (
+           select 1
+           from public.student_learning_programs existing
+           where existing.student_id = p_student_id
+             and existing.program_id = selected.id
+         )
+       )
+  ) then
+    raise exception 'inactive program';
+  end if;
+
+  delete from public.student_learning_programs
+  where student_id = p_student_id
+    and not (program_id = any(p_program_ids));
+
+  insert into public.student_learning_programs(student_id, program_id)
+  select p_student_id, id
+  from unnest(p_program_ids) selected(id)
+  on conflict (student_id, program_id) do nothing;
+end;
+$$;
+
+revoke all on function public.replace_student_learning_programs(uuid, uuid[]) from public, anon, authenticated;
+grant execute on function public.replace_student_learning_programs(uuid, uuid[]) to service_role;
