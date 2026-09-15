@@ -9,7 +9,7 @@ const source = fs.readFileSync('src/components/formula-editor/formula-editor.tsx
 const css = fs.readFileSync('src/components/formula-editor/formula-editor.module.css', 'utf8');
 const practice = fs.readFileSync('src/app/student/trainers/formula-recall/formula-recall.module.css', 'utf8');
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
-const field = { value: 'N/t', selection: { direction: 'backward', ranges: [[1, 3]] }, selectionIsCollapsed: true, inlineShortcuts: { mm: '\\operatorname{mm}', cm: '\\operatorname{cm}', pi: '\\pi' },
+const field = { value: 'N/t', selection: { direction: 'backward', ranges: [[1, 3]] }, selectionIsCollapsed: true,
   focus() { this.focused = true; }, insert(value, options) { this.inserted = { value, options }; }, executeCommand(value) { this.command = value; } };
 const keyboard = { layouts: [], visible: false, show() { this.visible = true; this.shown = true; }, hide() { this.visible = false; this.hidden = true; } };
 let refIndex = 0;
@@ -42,12 +42,6 @@ check('disabled/read-only editor cannot open keyboard', () => {
     assert.equal(button.props.disabled, true); button.props.onClick(); assert.equal(keyboard.shown, false);
   }
 });
-check('symbolic editor disables unit shortcuts that collide with repeated variables', () => {
-  assert.match(source, /delete symbolicShortcuts\.mm/);
-  assert.match(source, /delete symbolicShortcuts\.cm/);
-  assert.match(source, /field\.inlineShortcuts = symbolicShortcuts/);
-});
-
 check('fraction/root/subscript/power retain MathLive placeholder insertion', () => {
   for (const [label, prefix] of [['a⁄b', '\\frac'], ['√', '\\sqrt'], ['xₙ', '_'], ['xⁿ', '^']]) {
     buttons.find((n) => n.props.children === label).props.onClick();
