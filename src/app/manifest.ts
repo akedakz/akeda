@@ -15,21 +15,21 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["education"],
     icons: [
       {
-        src: "/pwa/icon-192.svg",
+        src: "/pwa/icon-192.png",
         sizes: "192x192",
-        type: "image/svg+xml",
+        type: "image/png",
         purpose: "any",
       },
       {
-        src: "/pwa/icon-512.svg",
+        src: "/pwa/icon-512.png",
         sizes: "512x512",
-        type: "image/svg+xml",
+        type: "image/png",
         purpose: "any",
       },
       {
-        src: "/pwa/icon-maskable.svg",
+        src: "/pwa/icon-maskable.png",
         sizes: "512x512",
-        type: "image/svg+xml",
+        type: "image/png",
         purpose: "maskable",
       },
     ],
