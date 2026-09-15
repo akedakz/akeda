@@ -143,7 +143,7 @@ async function TopicsTab({ studentId }: { studentId: string }) {
         programs={programProgress.programs}
         loadError={programProgress.error}
       />
-      {legacyTopics.length > 0 && (
+      {programProgress.programs.length === 0 && legacyTopics.length > 0 && (
         <StudentTopicsPanel
           key={legacyTopics.map((topic) => `${topic.id}:${topic.completedAt ?? ""}`).join("|")}
           studentId={studentId}
