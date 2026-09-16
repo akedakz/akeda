@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect,useMemo,useRef,useState } from "react";
+import { useMemo,useRef,useState } from "react";
+import { useRouter } from "next/navigation";
 import LibrarySortMenu from "@/components/admin/library-sort-menu";
 import MaterialLibraryContent from "@/components/materials/material-library-content";
 import type { MaterialFolderItem } from "@/components/materials/material-folder-card";
@@ -13,6 +14,7 @@ import styles from "./materials.module.css";
 
 type Modal={kind:"rename"|"move"|"delete";folder:MaterialFolderItem}|null;
 export default function MaterialLibraryExplorer({initialFolderId,initialFolders,initialMaterials,sort}:{initialFolderId:string|null;initialFolders:MaterialLibraryFolder[];initialMaterials:MaterialLibraryItem[];sort:LibrarySort}){
+  const router=useRouter();
   const[folderId,setFolderId]=useState(initialFolderId),[folders,setFolders]=useState(initialFolders),[materials,setMaterials]=useState(initialMaterials),[modal,setModal]=useState<Modal>(null),[name,setName]=useState(""),[destination,setDestination]=useState(""),[confirmation,setConfirmation]=useState(""),[result,setResult]=useState<MaterialFolderActionResult|null>(null),[pending,setPending]=useState(false),[recentId,setRecentId]=useState<string|null>(null),pendingGuard=useRef(false);
   const byId=useMemo(()=>new Map(folders.map(folder=>[folder.id,folder])),[folders]);
   const chain=useMemo(()=>{const items:MaterialLibraryFolder[]=[];const seen=new Set<string>();let id=folderId;while(id&&!seen.has(id)){seen.add(id);const folder=byId.get(id);if(!folder)break;items.unshift(folder);id=folder.parentId;}return items;},[byId,folderId]);
@@ -20,8 +22,7 @@ export default function MaterialLibraryExplorer({initialFolderId,initialFolders,
   const children=useMemo(()=>promoteRecent(sortLibraryItems(folders.filter(folder=>folder.parentId===folderId),sort,item=>item.name,item=>item.createdAt),recentId),[folderId,folders,recentId,sort]);
   const visible=useMemo(()=>promoteRecent(sortLibraryItems(materials.filter(material=>material.folderId===folderId),sort,item=>item.title,item=>item.created_at),recentId),[folderId,materials,recentId,sort]);
   const counts=(folder:MaterialLibraryFolder):MaterialFolderItem=>({...folder,childFolderCount:folders.filter(item=>item.parentId===folder.id).length,materialCount:materials.filter(item=>item.folderId===folder.id).length});
-  const navigate=(id:string|null,replace=false)=>{window.history[replace?"replaceState":"pushState"](null,"",withSort(id?`/admin/materials/folders/${id}`:"/admin/materials",sort));setFolderId(id);setRecentId(null);setModal(null);};
-  useEffect(()=>{const pop=()=>{const match=window.location.pathname.match(/^\/admin\/materials\/folders\/([^/]+)$/);setFolderId(match?.[1]??null);setRecentId(null);};window.addEventListener("popstate",pop);return()=>window.removeEventListener("popstate",pop);},[]);
+  const navigate=(id:string|null,replace=false)=>{const href=withSort(id?`/admin/materials/folders/${id}`:"/admin/materials",sort);setFolderId(id);setRecentId(null);setModal(null);if(replace)router.replace(href,{scroll:false});else router.push(href,{scroll:false});};
   const descendants=(id:string)=>{const found=new Set<string>();const visit=(parent:string)=>folders.filter(item=>item.parentId===parent).forEach(item=>{if(!found.has(item.id)){found.add(item.id);visit(item.id);}});visit(id);return found;};
   const closeModal=()=>{if(!pendingGuard.current)setModal(null);};
   const runFolderAction=async(action:()=>Promise<MaterialFolderActionResult>)=>{if(!tryAcquirePending(pendingGuard))return null;setPending(true);try{return await action();}catch{return{ok:false,message:"Не удалось выполнить действие с папкой."};}finally{releasePending(pendingGuard);setPending(false);}};
