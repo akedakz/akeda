@@ -16,7 +16,8 @@ export default function ParentPaymentCard({
   amountDueKzt: number;
   pendingClaim: { amountKzt: number; createdAt: string } | null;
 }) {
-  const [amount, setAmount] = useState(String(pendingClaim?.amountKzt ?? Math.max(amountDueKzt, 0) || ""));
+  const suggestedAmount = pendingClaim?.amountKzt ?? Math.max(amountDueKzt, 0);
+  const [amount, setAmount] = useState(suggestedAmount > 0 ? String(suggestedAmount) : "");
   const [notice, setNotice] = useState("");
   const [pending, startTransition] = useTransition();
 
