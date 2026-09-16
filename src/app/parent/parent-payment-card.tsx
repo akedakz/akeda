@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { submitKaspiPaymentClaim } from "./payment-actions";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { formatKzt } from "@/lib/finance/types";
+import { loadPendingKaspiPaymentClaims, submitKaspiPaymentClaim, type PendingKaspiPaymentClaim } from "./payment-actions";
 import styles from "./parent.module.css";
 
 const KASPI_URL = "https://qr.kaspi.kz/19203306684873211261528510026767795507910";
@@ -10,22 +11,38 @@ const KASPI_URL = "https://qr.kaspi.kz/19203306684873211261528510026767795507910
 export default function ParentPaymentCard({
   studentId,
   amountDueKzt,
-  pendingClaim,
+  pendingClaims,
 }: {
   studentId: string;
   amountDueKzt: number;
-  pendingClaim: { amountKzt: number; createdAt: string } | null;
+  pendingClaims: PendingKaspiPaymentClaim[];
 }) {
-  const suggestedAmount = pendingClaim?.amountKzt ?? Math.max(amountDueKzt, 0);
-  const [amount, setAmount] = useState(suggestedAmount > 0 ? String(suggestedAmount) : "");
+  const router = useRouter();
+  const [amount, setAmount] = useState(amountDueKzt > 0 ? String(amountDueKzt) : "");
   const [notice, setNotice] = useState("");
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (!pendingClaims.length) return;
+
+    const currentFingerprint = fingerprint(pendingClaims);
+    const interval = window.setInterval(async () => {
+      const latest = await loadPendingKaspiPaymentClaims(studentId);
+      if (latest && fingerprint(latest) !== currentFingerprint) router.refresh();
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [pendingClaims, router, studentId]);
 
   function submit() {
     const value = Number(amount);
     startTransition(async () => {
       const result = await submitKaspiPaymentClaim(studentId, value);
       setNotice(result.message);
+      if (result.ok) {
+        setAmount("");
+        router.refresh();
+      }
     });
   }
 
@@ -35,10 +52,16 @@ export default function ParentPaymentCard({
         <span>Оплата обучения</span>
         <h2 id="kaspi-payment-title">Kaspi</h2>
         <p>Откройте Kaspi, оплатите нужную сумму и затем сообщите об оплате.</p>
-        {pendingClaim && (
-          <div className={styles.pendingClaim}>
-            <strong>Заявка уже отправлена</strong>
-            <span>{formatKzt(pendingClaim.amountKzt)} · ожидает подтверждения</span>
+
+        {pendingClaims.length > 0 && (
+          <div className={styles.pendingClaims}>
+            <strong>Ожидают подтверждения</strong>
+            {pendingClaims.map((claim) => (
+              <div className={styles.pendingClaim} key={claim.id}>
+                <span>{formatKzt(claim.amountKzt)}</span>
+                <small>заявка отправлена</small>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -60,10 +83,14 @@ export default function ParentPaymentCard({
           />
         </label>
         <button type="button" disabled={pending || !amount} onClick={submit}>
-          {pending ? "Отправляем…" : pendingClaim ? "Обновить заявку" : "Я оплатил"}
+          {pending ? "Отправляем…" : "Я оплатил"}
         </button>
         {notice && <p className={styles.paymentNotice} role="status">{notice}</p>}
       </div>
     </section>
   );
+}
+
+function fingerprint(claims: PendingKaspiPaymentClaim[]) {
+  return claims.map((claim) => `${claim.id}:${claim.amountKzt}`).join("|");
 }
