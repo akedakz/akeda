@@ -9,7 +9,7 @@ import styles from "./parent.module.css";
 
 type ResultRow = { id: string; assignment_id: string; score: number | null; max_score: number | null; submitted_at: string };
 type AssignmentRow = { id: string; title: string };
-type PendingClaimRow = { amount_kzt: number; created_at: string };
+type PendingClaimRow = { id: string; amount_kzt: number; created_at: string };
 
 export default async function ParentPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const children = await loadParentChildren();
@@ -24,17 +24,20 @@ export default async function ParentPage({ searchParams }: { searchParams: Promi
 
   const { admin } = access.context;
   const now = new Date().toISOString();
-  const [nextLesson, schedule, attempts, progress, finance, pendingClaimResult] = await Promise.all([
+  const [nextLesson, schedule, attempts, progress, finance, pendingClaimsResult] = await Promise.all([
     admin.from("student_lessons").select("id,starts_at,ends_at").eq("student_id", selectedId).is("deleted_at", null).is("status_override", null).gt("ends_at", now).order("starts_at").limit(1).maybeSingle(),
     admin.from("student_schedule_slots").select("id,weekday,start_time,duration_minutes").eq("student_id", selectedId).is("valid_until", null).order("weekday").order("start_time"),
     admin.from("test_attempts").select("id,assignment_id,score,max_score,submitted_at").eq("student_id", selectedId).not("submitted_at", "is", null).order("submitted_at", { ascending: false }).limit(10),
     loadStudentProgressByStudentId(selectedId),
     loadStudentFinance(selectedId),
-    admin.from("student_payment_claims").select("amount_kzt,created_at").eq("student_id", selectedId).eq("reported_by", access.context.current.profile!.id).eq("status", "PENDING").maybeSingle(),
+    admin.from("student_payment_claims").select("id,amount_kzt,created_at").eq("student_id", selectedId).eq("reported_by", access.context.current.profile!.id).eq("status", "PENDING").order("created_at", { ascending: false }).limit(20),
   ]);
-  if (pendingClaimResult.error) throw pendingClaimResult.error;
-  const pendingClaimRow = pendingClaimResult.data as PendingClaimRow | null;
-  const pendingClaim = pendingClaimRow ? { amountKzt: Number(pendingClaimRow.amount_kzt), createdAt: pendingClaimRow.created_at } : null;
+  if (pendingClaimsResult.error) throw pendingClaimsResult.error;
+  const pendingClaims = ((pendingClaimsResult.data ?? []) as PendingClaimRow[]).map((claim) => ({
+    id: claim.id,
+    amountKzt: Number(claim.amount_kzt),
+    createdAt: claim.created_at,
+  }));
 
   const attemptRows = (attempts.data ?? []) as ResultRow[];
   const assignmentIds = [...new Set(attemptRows.map((attempt) => attempt.assignment_id))];
@@ -48,7 +51,7 @@ export default async function ParentPage({ searchParams }: { searchParams: Promi
 
     <div className={styles.summaryGrid}><section className={styles.card}><span>Ближайший урок</span>{nextLesson.data ? <><strong>{dateTime.format(new Date(nextLesson.data.starts_at))}</strong><p>{duration(nextLesson.data.starts_at, nextLesson.data.ends_at)} минут</p></> : <strong>Пока не запланирован</strong>}</section><section className={styles.card}><span>Баланс</span><strong className={finance.balanceKzt < 0 ? styles.negative : undefined}>{formatKzt(finance.balanceKzt)}</strong>{finance.balanceKzt < 0 && <p>К оплате: {formatKzt(-finance.balanceKzt)}</p>}</section><section className={styles.card}><span>Тариф</span><strong>{finance.ratePer60Kzt ? formatKzt(finance.ratePer60Kzt) : "Не задан"}</strong><p>за 60 минут</p></section><section className={styles.card}><span>Осталось</span><strong>{finance.remainingLessonEquivalents === null ? "—" : `${formatLessonEquivalents(finance.remainingLessonEquivalents)} урока`}</strong><p>по 60 минут</p></section></div>
 
-    <ParentPaymentCard studentId={selectedId} amountDueKzt={Math.max(-finance.balanceKzt, 0)} pendingClaim={pendingClaim}/>
+    <ParentPaymentCard studentId={selectedId} amountDueKzt={Math.max(-finance.balanceKzt, 0)} pendingClaims={pendingClaims}/>
 
     <section className={styles.section}><h2>Текущее расписание</h2>{schedule.data?.length ? <div className={styles.schedule}>{schedule.data.map((slot) => <div key={slot.id}><strong>{weekdays[slot.weekday]}</strong><span>{String(slot.start_time).slice(0,5)} · {slot.duration_minutes} мин</span></div>)}</div> : <p className={styles.muted}>Расписание пока не задано.</p>}</section>
 
