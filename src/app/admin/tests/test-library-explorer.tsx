@@ -16,7 +16,7 @@ type Modal = { kind: "rename" | "move" | "delete"; folder: TestFolderItem } | nu
 
 export default function TestLibraryExplorer({ initialFolderId, initialFolders, initialTests, sort }: { initialFolderId: string | null; initialFolders: TestLibraryFolder[]; initialTests: TestLibraryTest[]; sort: LibrarySort }) {
   const router = useRouter();
-  const [folderId, setFolderId] = useState(initialFolderId);
+  const folderId = initialFolderId;
   const [folders, setFolders] = useState(initialFolders);
   const [tests, setTests] = useState(initialTests);
   const [modal, setModal] = useState<Modal>(null);
@@ -35,7 +35,7 @@ export default function TestLibraryExplorer({ initialFolderId, initialFolders, i
   const visibleTests = useMemo(() => promoteRecent(sortLibraryItems(tests.filter((test) => test.folderId === folderId), sort, (item) => item.title, (item) => item.created_at), recentId), [folderId, recentId, sort, tests]);
   const counts = (folder: TestLibraryFolder): TestFolderItem => ({ ...folder, childFolderCount: folders.filter((item) => item.parentId === folder.id).length, testCount: tests.filter((item) => item.folderId === folder.id).length });
 
-  const navigate = (id: string | null, replace = false) => { const href = withSort(id ? `/admin/tests/folders/${id}` : "/admin/tests", sort); setFolderId(id); setRecentId(null); setModal(null); if (replace) router.replace(href, { scroll: false }); else router.push(href, { scroll: false }); };
+  const navigate = (id: string | null, replace = false) => { const href = withSort(id ? `/admin/tests/folders/${id}` : "/admin/tests", sort); setRecentId(null); setModal(null); if (replace) router.replace(href, { scroll: false }); else router.push(href, { scroll: false }); };
 
   const descendants = (id: string) => { const found = new Set<string>(); const visit = (parent: string) => folders.filter((item) => item.parentId === parent).forEach((item) => { if (!found.has(item.id)) { found.add(item.id); visit(item.id); } }); visit(id); return found; };
   const closeModal = () => { if (!pendingGuard.current) setModal(null); };
