@@ -31,6 +31,17 @@ create index student_payment_claims_pending_created_idx
 create index student_payment_claims_student_created_idx
   on public.student_payment_claims(student_id, created_at desc);
 
+create index student_payment_claims_reported_by_idx
+  on public.student_payment_claims(reported_by);
+
+create index student_payment_claims_reviewed_by_idx
+  on public.student_payment_claims(reviewed_by)
+  where reviewed_by is not null;
+
+create index student_payment_claims_financial_entry_id_idx
+  on public.student_payment_claims(financial_entry_id)
+  where financial_entry_id is not null;
+
 alter table public.student_payment_claims enable row level security;
 revoke all on public.student_payment_claims from public, anon, authenticated;
 grant all on public.student_payment_claims to service_role;
