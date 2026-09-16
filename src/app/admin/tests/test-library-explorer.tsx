@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import LibrarySortMenu from "@/components/admin/library-sort-menu";
 import TestLibraryContent from "@/components/tests/test-library-content";
 import type { TestFolderItem } from "@/components/tests/test-folder-card";
@@ -14,7 +15,8 @@ import styles from "./tests.module.css";
 type Modal = { kind: "rename" | "move" | "delete"; folder: TestFolderItem } | null;
 
 export default function TestLibraryExplorer({ initialFolderId, initialFolders, initialTests, sort }: { initialFolderId: string | null; initialFolders: TestLibraryFolder[]; initialTests: TestLibraryTest[]; sort: LibrarySort }) {
-  const [folderId, setFolderId] = useState(initialFolderId);
+  const router = useRouter();
+  const folderId = initialFolderId;
   const [folders, setFolders] = useState(initialFolders);
   const [tests, setTests] = useState(initialTests);
   const [modal, setModal] = useState<Modal>(null);
@@ -33,8 +35,7 @@ export default function TestLibraryExplorer({ initialFolderId, initialFolders, i
   const visibleTests = useMemo(() => promoteRecent(sortLibraryItems(tests.filter((test) => test.folderId === folderId), sort, (item) => item.title, (item) => item.created_at), recentId), [folderId, recentId, sort, tests]);
   const counts = (folder: TestLibraryFolder): TestFolderItem => ({ ...folder, childFolderCount: folders.filter((item) => item.parentId === folder.id).length, testCount: tests.filter((item) => item.folderId === folder.id).length });
 
-  const navigate = (id: string | null, replace = false) => { const href = withSort(id ? `/admin/tests/folders/${id}` : "/admin/tests", sort); window.history[replace ? "replaceState" : "pushState"](null, "", href); setFolderId(id); setRecentId(null); setModal(null); };
-  useEffect(() => { const pop = () => { const match = window.location.pathname.match(/^\/admin\/tests\/folders\/([^/]+)$/); setFolderId(match?.[1] ?? null); setRecentId(null); }; window.addEventListener("popstate", pop); return () => window.removeEventListener("popstate", pop); }, []);
+  const navigate = (id: string | null, replace = false) => { const href = withSort(id ? `/admin/tests/folders/${id}` : "/admin/tests", sort); setRecentId(null); setModal(null); if (replace) router.replace(href, { scroll: false }); else router.push(href, { scroll: false }); };
 
   const descendants = (id: string) => { const found = new Set<string>(); const visit = (parent: string) => folders.filter((item) => item.parentId === parent).forEach((item) => { if (!found.has(item.id)) { found.add(item.id); visit(item.id); } }); visit(id); return found; };
   const closeModal = () => { if (!pendingGuard.current) setModal(null); };
