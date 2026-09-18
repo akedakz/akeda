@@ -40,7 +40,10 @@ export default function ProgramEditor({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration gate keeps dnd-kit accessibility ids deterministic
+    setMounted(true);
+  }, []);
 
   function run(task: () => Promise<{ ok: boolean; message: string }>) {
     if (!tryAcquirePending(pendingGuard)) return;
@@ -254,13 +257,16 @@ function SortableTopic({
   rename: () => void;
   remove: () => void;
 }) {
-  const sortable = useSortable({ id: topic.id, disabled });
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: topic.id,
+    disabled,
+  });
   return (
     <div
-      ref={sortable.setNodeRef}
+      ref={setNodeRef}
       style={{
-        transform: CSS.Transform.toString(sortable.transform),
-        transition: sortable.transition,
+        transform: CSS.Transform.toString(transform),
+        transition,
       }}
     >
       <TopicRow
@@ -272,8 +278,8 @@ function SortableTopic({
         handle={
           <button
             className={styles.drag}
-            {...sortable.attributes}
-            {...sortable.listeners}
+            {...attributes}
+            {...listeners}
             disabled={disabled}
             aria-label={`Изменить порядок темы «${topic.title}»`}
           >
