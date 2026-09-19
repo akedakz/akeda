@@ -5,19 +5,19 @@ import { useFormStatus } from "react-dom";
 import { sendSupportMessage, signOutToHome, type SupportActionState } from "@/app/student/profile/actions";
 import ProgramProgressCard from "@/components/programs/program-progress-card";
 import type { LearningProgramProgress } from "@/components/programs/program-progress-types";
+import UserAvatar from "@/components/user-avatar";
 import StudentNavIcon from "./student-nav-icon";
 import StudentProgressModal from "./progress/student-progress-modal";
-import StudentAvatarEditor from "./student-avatar-editor";
 import styles from "./student-profile-page.module.css";
 
 const statusLabels = { ACTIVE: "Активен", PAUSED: "Приостановлен", ARCHIVED: "В архиве" } as const;
 type Profile = { fullName: string; email: string; status: keyof typeof statusLabels | null; createdLabel: string; programs: LearningProgramProgress[] };
 
-export default function StudentProfilePage({ profile, avatarUrl }: { profile: Profile; avatarUrl: string | null }) {
+export default function StudentProfilePage({ profile }: { profile: Profile }) {
   const [reportOpen, setReportOpen] = useState(false);
   return <div className={styles.page}>
     <section className={styles.profileCard} aria-label="Основная информация профиля">
-      <StudentAvatarEditor name={profile.fullName} initialUrl={avatarUrl}/>
+      <UserAvatar name={profile.fullName} avatarUrl={null} size={112}/>
       <dl className={styles.accountInfo}>
         <div className={styles.nameRow}><dt>Имя и фамилия</dt><dd>{profile.fullName}</dd></div>
         <div><dt>Email</dt><dd>{profile.email}</dd></div>

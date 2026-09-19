@@ -5,7 +5,6 @@ import StudentProfilePage from "@/components/student/student-profile-page";
 import { getCurrentProfile } from "@/lib/auth/get-current-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatResultDateLabel } from "@/lib/results/result-date-label";
-import { createStudentAvatarUrl } from "@/lib/avatars/student-avatar";
 import { loadStudentLearningProgramProgress } from "@/lib/programs/load-student-program-progress";
 
 export default function ProfilePage() {
@@ -32,7 +31,7 @@ async function ProfileContent() {
   const [profileResult, programProgress] = await Promise.all([
     admin
       .from("profiles")
-      .select("full_name,email,student_status,created_at,avatar_path")
+      .select("full_name,email,student_status,created_at")
       .eq("id", current.user.id)
       .eq("role", "STUDENT")
       .single(),
@@ -49,7 +48,6 @@ async function ProfileContent() {
 
   return (
     <StudentProfilePage
-      avatarUrl={await createStudentAvatarUrl(profileResult.data.avatar_path)}
       profile={{
         fullName: profileResult.data.full_name ?? "Ученик",
         email: current.user.email ?? profileResult.data.email ?? "—",
