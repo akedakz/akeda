@@ -5,7 +5,8 @@ import type { LearningProgramProgress, ProgramTopicProgressItem } from "@/compon
 
 type AssignmentRow = { program_id: string; created_at: string };
 type ProgramRow = { id: string; name: string };
-type TopicRow = { id: string; program_id: string; title: string; sort_order: number };
+type SectionRow = { id:string; program_id:string; title:string; sort_order:number };
+type TopicRow = { id: string; program_id: string; section_id:string; title: string; sort_order: number };
 type ProgressRow = { program_id: string; program_topic_id: string; completed_at: string };
 
 export async function loadStudentLearningProgramProgress(
@@ -30,11 +31,12 @@ export async function loadStudentLearningProgramProgress(
   if (!links.length) return { programs: [], error: null };
 
   const programIds = links.map((item) => item.program_id);
-  const [programsResult, topicsResult, progressResult] = await Promise.all([
+  const [programsResult, sectionsResult, topicsResult, progressResult] = await Promise.all([
     admin.from("learning_programs").select("id,name").in("id", programIds),
+    admin.from("learning_program_sections").select("id,program_id,title,sort_order").in("program_id",programIds).order("sort_order").order("id"),
     admin
       .from("learning_program_topics")
-      .select("id,program_id,title,sort_order")
+      .select("id,program_id,section_id,title,sort_order")
       .in("program_id", programIds)
       .order("sort_order", { ascending: true })
       .order("id", { ascending: true }),
@@ -45,7 +47,7 @@ export async function loadStudentLearningProgramProgress(
       .in("program_id", programIds),
   ]);
 
-  const error = programsResult.error ?? topicsResult.error ?? progressResult.error;
+  const error = programsResult.error ?? sectionsResult.error ?? topicsResult.error ?? progressResult.error;
   if (error) {
     console.error("PROGRAM_PROGRESS_LOAD", { code: error.code, message: error.message });
     return { programs: [], error: "Не удалось загрузить прогресс программы." };
@@ -70,6 +72,7 @@ export async function loadStudentLearningProgramProgress(
     const sourceTopics = topicsByProgram.get(program.id) ?? [];
     const topics: ProgramTopicProgressItem[] = sourceTopics.map((topic) => ({
       id: topic.id,
+      sectionId: topic.section_id,
       title: topic.title,
       sortOrder: topic.sort_order,
       completedAt: progressMap.get(topic.id) ?? null,
@@ -89,6 +92,7 @@ export async function loadStudentLearningProgramProgress(
     const completedTopics = topics.filter((topic) => topic.completedAt).length;
     const totalTopics = topics.length;
 
+    const programSections=((sectionsResult.data??[]) as SectionRow[]).filter(section=>section.program_id===program.id).map(section=>({id:section.id,title:section.title,sortOrder:section.sort_order,topics:topics.filter(topic=>topic.sectionId===section.id)}));
     programs.push({
       id: program.id,
       name: program.name,
@@ -96,6 +100,7 @@ export async function loadStudentLearningProgramProgress(
       completedTopics,
       percent: totalTopics ? Math.round((completedTopics / totalTopics) * 100) : 0,
       topics,
+      sections:programSections,
     });
   }
 

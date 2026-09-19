@@ -21,6 +21,11 @@ function topicTitle(data: FormData) {
   return value && value.length <= 200 ? value : null;
 }
 
+function sectionTitle(data: FormData) {
+  const value = String(data.get("title") ?? "").trim();
+  return value && value.length <= 120 ? value : null;
+}
+
 function refresh(programId?: string) {
   revalidatePath("/admin/settings");
   revalidatePath("/admin/settings/programs");
@@ -96,24 +101,27 @@ export async function addProgramTopic(programId: string, data: FormData) {
   const client = await admin();
   if (!client) return { ok: false, message: "Недостаточно прав." };
   const title = topicTitle(data);
-  if (!uuid.test(programId) || !title) return { ok: false, message: "Введите название темы до 200 символов." };
+  const sectionId = String(data.get("sectionId") ?? "");
+  if (!uuid.test(programId) || !uuid.test(sectionId) || !title) return { ok: false, message: "Введите название темы до 200 символов." };
 
   const [programResult, lastResult] = await Promise.all([
-    client.from("learning_programs").select("id").eq("id", programId).eq("is_active", true).maybeSingle(),
+    client.from("learning_program_sections").select("id").eq("id", sectionId).eq("program_id", programId).maybeSingle(),
     client
       .from("learning_program_topics")
       .select("sort_order")
       .eq("program_id", programId)
+      .eq("section_id", sectionId)
       .order("sort_order", { ascending: false })
       .limit(1),
   ]);
 
-  if (programResult.error || !programResult.data) return { ok: false, message: "Программа не найдена." };
+  if (programResult.error || !programResult.data) return { ok: false, message: "Раздел не найден." };
   if (lastResult.error) return { ok: false, message: "Не удалось определить порядок тем." };
 
   const sortOrder = (lastResult.data?.[0]?.sort_order ?? -1) + 1;
   const result = await client.from("learning_program_topics").insert({
     program_id: programId,
+    section_id: sectionId,
     title,
     sort_order: sortOrder,
   });
@@ -154,6 +162,9 @@ export async function deleteProgramTopic(programId: string, topicId: string) {
   if (!client) return { ok: false, message: "Недостаточно прав." };
   if (!uuid.test(programId) || !uuid.test(topicId)) return { ok: false, message: "Некорректная тема." };
 
+  const existing = await client.from("learning_program_topics").select("section_id").eq("id", topicId).eq("program_id", programId).maybeSingle();
+  if (existing.error || !existing.data) return { ok: false, message: "Тема не найдена." };
+
   const removed = await client
     .from("learning_program_topics")
     .delete()
@@ -168,14 +179,16 @@ export async function deleteProgramTopic(programId: string, topicId: string) {
     .from("learning_program_topics")
     .select("id")
     .eq("program_id", programId)
+    .eq("section_id", existing.data.section_id)
     .order("sort_order", { ascending: true })
     .order("id", { ascending: true });
 
   if (remaining.error) return { ok: false, message: "Тема удалена, но порядок не удалось обновить." };
 
   if (remaining.data.length) {
-    const reordered = await client.rpc("reorder_learning_program_topics", {
+    const reordered = await client.rpc("reorder_learning_program_section_topics", {
       p_program_id: programId,
+      p_section_id: existing.data.section_id,
       p_ids: remaining.data.map((item) => item.id),
     });
     if (reordered.error) console.error("NORMALIZE_PROGRAM_TOPICS", reordered.error);
@@ -186,18 +199,19 @@ export async function deleteProgramTopic(programId: string, topicId: string) {
   return { ok: true, message: "Тема удалена." };
 }
 
-export async function reorderProgramTopics(programId: string, ids: string[]) {
+export async function reorderProgramTopics(programId: string, sectionId: string, ids: string[]) {
   const client = await admin();
   if (!client) return { ok: false, message: "Недостаточно прав." };
   if (
     !uuid.test(programId)
-    || !ids.length
+    || !uuid.test(sectionId)
     || ids.some((id) => !uuid.test(id))
     || new Set(ids).size !== ids.length
   ) return { ok: false, message: "Некорректный порядок." };
 
-  const result = await client.rpc("reorder_learning_program_topics", {
+  const result = await client.rpc("reorder_learning_program_section_topics", {
     p_program_id: programId,
+    p_section_id: sectionId,
     p_ids: ids,
   });
 
@@ -208,4 +222,39 @@ export async function reorderProgramTopics(programId: string, ids: string[]) {
 
   refresh(programId);
   return { ok: true, message: "Порядок сохранён." };
+}
+
+export async function addProgramSection(programId: string, data: FormData) {
+  const client = await admin();
+  if (!client) return { ok: false, message: "Недостаточно прав." };
+  const title = sectionTitle(data);
+  if (!uuid.test(programId) || !title) return { ok: false, message: "Введите название раздела до 120 символов." };
+  const last = await client.from("learning_program_sections").select("sort_order").eq("program_id", programId).order("sort_order", { ascending: false }).limit(1);
+  if (last.error) return { ok: false, message: "Не удалось определить порядок разделов." };
+  const result = await client.from("learning_program_sections").insert({program_id:programId,title,sort_order:(last.data?.[0]?.sort_order ?? -1)+1});
+  if (result.error) return { ok: false, message: "Не удалось добавить раздел." };
+  refresh(programId);
+  return { ok: true, message: "Раздел добавлен." };
+}
+
+export async function renameProgramSection(programId: string, sectionId: string, data: FormData) {
+  const client = await admin();
+  if (!client) return { ok: false, message: "Недостаточно прав." };
+  const title = sectionTitle(data);
+  if (!uuid.test(programId) || !uuid.test(sectionId) || !title) return { ok: false, message: "Некорректный раздел." };
+  const result = await client.from("learning_program_sections").update({title,updated_at:new Date().toISOString()}).eq("id",sectionId).eq("program_id",programId).select("id").maybeSingle();
+  if (result.error || !result.data) return { ok: false, message: "Раздел не найден." };
+  refresh(programId);
+  return { ok: true, message: "Раздел переименован." };
+}
+
+export async function deleteProgramSection(programId: string, sectionId: string) {
+  const client = await admin();
+  if (!client) return { ok: false, message: "Недостаточно прав." };
+  if (!uuid.test(programId) || !uuid.test(sectionId)) return { ok: false, message: "Некорректный раздел." };
+  const result = await client.from("learning_program_sections").delete().eq("id",sectionId).eq("program_id",programId).select("id").maybeSingle();
+  if (result.error) return { ok: false, message: result.error.code === "23503" ? "Сначала удалите или перенесите темы из раздела." : "Не удалось удалить раздел." };
+  if (!result.data) return { ok: false, message: "Раздел не найден." };
+  refresh(programId);
+  return { ok: true, message: "Раздел удалён." };
 }

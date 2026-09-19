@@ -46,9 +46,11 @@ export default function ProgramProgressCard({
         </div>
       </div>
 
-      {program.topics.length > 0 && (
-        <div className={styles.topicGrid}>
-          {program.topics.map((topic) => (
+      {program.sections.map((section) => section.topics.length > 0 && (
+        <div className={styles.programSection} key={section.id}>
+          <h4>{section.title}</h4>
+          <div className={styles.topicGrid}>
+          {section.topics.map((topic) => (
             <TopicCard
               key={topic.id}
               topic={topic}
@@ -57,8 +59,9 @@ export default function ProgramProgressCard({
               onToggle={onToggle}
             />
           ))}
+          </div>
         </div>
-      )}
+      ))}
     </section>
   );
 }

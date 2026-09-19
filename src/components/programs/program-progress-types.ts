@@ -1,8 +1,16 @@
 export type ProgramTopicProgressItem = {
   id: string;
+  sectionId: string;
   title: string;
   sortOrder: number;
   completedAt: string | null;
+};
+
+export type ProgramSectionProgress = {
+  id: string;
+  title: string;
+  sortOrder: number;
+  topics: ProgramTopicProgressItem[];
 };
 
 export type LearningProgramProgress = {
@@ -12,4 +20,5 @@ export type LearningProgramProgress = {
   completedTopics: number;
   percent: number;
   topics: ProgramTopicProgressItem[];
+  sections: ProgramSectionProgress[];
 };

@@ -7,286 +7,38 @@ import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, v
 import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { releasePending, tryAcquirePending } from "@/lib/ui/pending-guard";
-import {
-  addProgramTopic,
-  deleteProgramTopic,
-  renameProgram,
-  renameProgramTopic,
-  reorderProgramTopics,
-} from "../actions";
+import { addProgramSection, addProgramTopic, deleteProgramSection, deleteProgramTopic, renameProgram, renameProgramSection, renameProgramTopic, reorderProgramTopics } from "../actions";
 import styles from "./program-editor.module.css";
 
-type Topic = { id: string; title: string; sort_order: number };
-type Modal =
-  | { kind: "renameProgram" | "addTopic" }
-  | { kind: "renameTopic" | "deleteTopic"; topic: Topic }
-  | null;
+type Section = { id:string; title:string; sort_order:number };
+type Topic = { id:string; section_id:string; title:string; sort_order:number };
+type Modal = {kind:"renameProgram"|"addSection"}|{kind:"addTopic"|"renameSection"|"deleteSection";section:Section}|{kind:"renameTopic"|"deleteTopic";topic:Topic}|null;
 
-export default function ProgramEditor({
-  program,
-  initialTopics,
-}: {
-  program: { id: string; name: string };
-  initialTopics: Topic[];
-}) {
-  const [topics, setTopics] = useState(initialTopics);
-  const [mounted, setMounted] = useState(false);
-  const [modal, setModal] = useState<Modal>(null);
-  const [error, setError] = useState("");
-  const [pending, startTransition] = useTransition();
-  const pendingGuard = useRef(false);
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration gate keeps dnd-kit accessibility ids deterministic
-    setMounted(true);
-  }, []);
-
-  function run(task: () => Promise<{ ok: boolean; message: string }>) {
-    if (!tryAcquirePending(pendingGuard)) return;
-    setError("");
-    startTransition(async () => {
-      try {
-        const result = await task();
-        if (!result.ok) setError(result.message);
-        else setModal(null);
-      } catch {
-        setError("Не удалось выполнить действие.");
-      } finally {
-        releasePending(pendingGuard);
-      }
-    });
-  }
-
-  function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    if (modal?.kind === "renameProgram") run(() => renameProgram(program.id, data));
-    if (modal?.kind === "addTopic") run(() => addProgramTopic(program.id, data));
-    if (modal?.kind === "renameTopic") run(() => renameProgramTopic(program.id, modal.topic.id, data));
-  }
-
-  function dragEnd({ active, over }: DragEndEvent) {
-    if (!over || active.id === over.id || pendingGuard.current) return;
-    const from = topics.findIndex((topic) => topic.id === active.id);
-    const to = topics.findIndex((topic) => topic.id === over.id);
-    if (from < 0 || to < 0 || !tryAcquirePending(pendingGuard)) return;
-
-    const previous = topics;
-    const next = arrayMove(topics, from, to);
-    setTopics(next);
-    setError("");
-
-    startTransition(async () => {
-      try {
-        const result = await reorderProgramTopics(program.id, next.map((topic) => topic.id));
-        if (!result.ok) {
-          setTopics(previous);
-          setError(result.message);
-        }
-      } catch {
-        setTopics(previous);
-        setError("Не удалось сохранить порядок тем.");
-      } finally {
-        releasePending(pendingGuard);
-      }
-    });
-  }
-
-  const rows = (
-    <div className={styles.list}>
-      {topics.map((topic, index) => mounted ? (
-        <SortableTopic
-          key={topic.id}
-          topic={topic}
-          index={index}
-          disabled={pending}
-          rename={() => setModal({ kind: "renameTopic", topic })}
-          remove={() => setModal({ kind: "deleteTopic", topic })}
-        />
-      ) : (
-        <TopicRow
-          key={topic.id}
-          topic={topic}
-          index={index}
-          disabled={pending}
-          rename={() => setModal({ kind: "renameTopic", topic })}
-          remove={() => setModal({ kind: "deleteTopic", topic })}
-        />
-      ))}
-    </div>
-  );
-
-  return (
-    <div className={styles.page}>
-      <BackLink href="/admin/settings/programs">К программам</BackLink>
-      <header className={styles.head}>
-        <div>
-          <span>Программа обучения</span>
-          <h1>{program.name}</h1>
-          <p>{topics.length} тем · этот порядок используется для всех учеников программы</p>
-        </div>
-        <button onClick={() => setModal({ kind: "renameProgram" })}>Переименовать</button>
-      </header>
-
-      <button className={styles.add} onClick={() => setModal({ kind: "addTopic" })}>Добавить тему</button>
-      {error && !modal && <p className={styles.error}>{error}</p>}
-
-      {mounted ? (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={dragEnd}>
-          <SortableContext items={topics.map((topic) => topic.id)} strategy={verticalListSortingStrategy}>
-            {rows}
-          </SortableContext>
-        </DndContext>
-      ) : rows}
-
-      {!topics.length && <p className={styles.empty}>Добавьте первую тему программы.</p>}
-
-      {modal && (
-        <div
-          className={styles.backdrop}
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !pendingGuard.current) setModal(null);
-          }}
-        >
-          <div className={styles.modal} role="dialog" aria-modal="true" aria-busy={pending}>
-            <h2>
-              {modal.kind === "renameProgram"
-                ? "Переименовать программу"
-                : modal.kind === "addTopic"
-                  ? "Добавить тему"
-                  : modal.kind === "renameTopic"
-                    ? "Переименовать тему"
-                    : "Удалить тему"}
-            </h2>
-
-            {modal.kind !== "deleteTopic" ? (
-              <form onSubmit={submit}>
-                <input
-                  autoFocus
-                  name={modal.kind === "renameProgram" ? "name" : "title"}
-                  maxLength={modal.kind === "renameProgram" ? 100 : 200}
-                  defaultValue={modal.kind === "renameProgram" ? program.name : modal.kind === "renameTopic" ? modal.topic.title : ""}
-                  required
-                  disabled={pending}
-                />
-                {error && <p className={styles.error}>{error}</p>}
-                <ModalButtons close={() => setModal(null)} pending={pending} />
-              </form>
-            ) : (
-              <>
-                <p>
-                  Удалить тему «{modal.topic.title}»? Она исчезнет из этой программы у всех учеников,
-                  а её сохранённый прогресс будет удалён.
-                </p>
-                {error && <p className={styles.error}>{error}</p>}
-                <ModalButtons
-                  close={() => setModal(null)}
-                  pending={pending}
-                  submit={() => run(() => deleteProgramTopic(program.id, modal.topic.id))}
-                />
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+export default function ProgramEditor({program,initialSections,initialTopics}:{program:{id:string;name:string};initialSections:Section[];initialTopics:Topic[]}){
+  const [topics,setTopics]=useState(initialTopics),[mounted,setMounted]=useState(false),[modal,setModal]=useState<Modal>(null),[error,setError]=useState("");
+  const [pending,startTransition]=useTransition();const guard=useRef(false);
+  const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor,{coordinateGetter:sortableKeyboardCoordinates}));
+  useEffect(()=>{
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- keeps dnd-kit hydration ids deterministic
+    setMounted(true)
+  },[]);
+  function run(task:()=>Promise<{ok:boolean;message:string}>){if(!tryAcquirePending(guard))return;setError("");startTransition(async()=>{try{const result=await task();if(!result.ok)setError(result.message);else setModal(null)}catch{setError("Не удалось выполнить действие.")}finally{releasePending(guard)}})}
+  function submit(event:React.FormEvent<HTMLFormElement>){event.preventDefault();const data=new FormData(event.currentTarget);if(modal?.kind==="renameProgram")run(()=>renameProgram(program.id,data));if(modal?.kind==="addSection")run(()=>addProgramSection(program.id,data));if(modal?.kind==="addTopic"){data.set("sectionId",modal.section.id);run(()=>addProgramTopic(program.id,data))}if(modal?.kind==="renameSection")run(()=>renameProgramSection(program.id,modal.section.id,data));if(modal?.kind==="renameTopic")run(()=>renameProgramTopic(program.id,modal.topic.id,data))}
+  function dragEnd(section:Section,{active,over}:DragEndEvent){if(!over||active.id===over.id||guard.current)return;const sectionTopics=topics.filter(topic=>topic.section_id===section.id);const from=sectionTopics.findIndex(topic=>topic.id===active.id),to=sectionTopics.findIndex(topic=>topic.id===over.id);if(from<0||to<0||!tryAcquirePending(guard))return;const previous=topics,ordered=arrayMove(sectionTopics,from,to),queue=[...ordered];setTopics(topics.map(topic=>topic.section_id===section.id?queue.shift()!:topic));setError("");startTransition(async()=>{try{const result=await reorderProgramTopics(program.id,section.id,ordered.map(topic=>topic.id));if(!result.ok){setTopics(previous);setError(result.message)}}catch{setTopics(previous);setError("Не удалось сохранить порядок тем.")}finally{releasePending(guard)}})}
+  return <div className={styles.page}><BackLink href="/admin/settings/programs">К программам</BackLink><header className={styles.head}><div><span>Программа обучения</span><h1>{program.name}</h1><p>{initialSections.length} разделов · {topics.length} тем</p></div><button onClick={()=>setModal({kind:"renameProgram"})}>Переименовать</button></header><button className={styles.add} onClick={()=>setModal({kind:"addSection"})}>+ Добавить раздел</button>{error&&!modal&&<p className={styles.error}>{error}</p>}<div className={styles.sections}>{initialSections.map((section,index)=><SectionCard key={section.id} section={section} index={index} topics={topics.filter(topic=>topic.section_id===section.id)} mounted={mounted} pending={pending} sensors={sensors} dragEnd={event=>dragEnd(section,event)} open={setModal}/>)}</div>{!initialSections.length&&<p className={styles.empty}>Добавьте первый раздел, а затем темы внутри него.</p>}{modal&&<ModalView modal={modal} error={error} pending={pending} close={()=>setModal(null)} submit={submit} run={run} programId={program.id} programName={program.name}/>}</div>;
 }
 
-function ModalButtons({
-  close,
-  pending,
-  submit,
-}: {
-  close: () => void;
-  pending: boolean;
-  submit?: () => void;
-}) {
-  return (
-    <div className={styles.actions}>
-      <button type="button" onClick={close} disabled={pending}>Отмена</button>
-      <button type={submit ? "button" : "submit"} onClick={submit} disabled={pending}>
-        {pending ? "Сохраняем…" : "Сохранить"}
-      </button>
-    </div>
-  );
+function SectionCard({section,index,topics,mounted,pending,sensors,dragEnd,open}:{section:Section;index:number;topics:Topic[];mounted:boolean;pending:boolean;sensors:ReturnType<typeof useSensors>;dragEnd:(event:DragEndEvent)=>void;open:(modal:Modal)=>void}){
+  const rows=<div className={styles.list}>{topics.map((topic,topicIndex)=>mounted?<SortableTopic key={topic.id} topic={topic} index={topicIndex} disabled={pending} rename={()=>open({kind:"renameTopic",topic})} remove={()=>open({kind:"deleteTopic",topic})}/>:<TopicRow key={topic.id} topic={topic} index={topicIndex} disabled={pending} rename={()=>open({kind:"renameTopic",topic})} remove={()=>open({kind:"deleteTopic",topic})}/>)}</div>;
+  return <section className={styles.sectionCard}><div className={styles.sectionHead}><div><span className={styles.folder}>▰</span><div><small>Раздел {index+1}</small><h2>{section.title}</h2><p>{topics.length} тем</p></div></div><LessonActionsDropdown actions={[{label:"Переименовать",onSelect:()=>open({kind:"renameSection",section})},{label:"Удалить раздел",onSelect:()=>open({kind:"deleteSection",section}),danger:true}]}/></div><button className={styles.addTopic} onClick={()=>open({kind:"addTopic",section})}>+ Добавить тему в раздел</button>{mounted?<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={dragEnd}><SortableContext items={topics.map(topic=>topic.id)} strategy={verticalListSortingStrategy}>{rows}</SortableContext></DndContext>:rows}{!topics.length&&<p className={styles.sectionEmpty}>В этом разделе пока нет тем.</p>}</section>;
 }
 
-function TopicRow({
-  topic,
-  index,
-  disabled,
-  rename,
-  remove,
-  handle,
-}: {
-  topic: Topic;
-  index: number;
-  disabled: boolean;
-  rename: () => void;
-  remove: () => void;
-  handle?: React.ReactNode;
-}) {
-  return (
-    <article className={styles.row} aria-busy={disabled}>
-      {handle ?? <span className={styles.drag}>⋮⋮</span>}
-      <span className={styles.number}>{index + 1}</span>
-      <b>{topic.title}</b>
-      <LessonActionsDropdown actions={[
-        { label: "Переименовать", onSelect: rename },
-        { label: "Удалить тему", onSelect: remove, danger: true },
-      ]}/>
-    </article>
-  );
+function ModalView({modal,error,pending,close,submit,run,programId,programName}:{modal:Exclude<Modal,null>;error:string;pending:boolean;close:()=>void;submit:(event:React.FormEvent<HTMLFormElement>)=>void;run:(task:()=>Promise<{ok:boolean;message:string}>)=>void;programId:string;programName:string}){
+  const deleting=modal.kind==="deleteTopic"||modal.kind==="deleteSection";const title=modal.kind==="renameProgram"?"Переименовать программу":modal.kind==="addSection"?"Добавить раздел":modal.kind==="addTopic"?"Добавить тему":modal.kind==="renameSection"?"Переименовать раздел":modal.kind==="deleteSection"?"Удалить раздел":modal.kind==="renameTopic"?"Переименовать тему":"Удалить тему";const value=modal.kind==="renameSection"||modal.kind==="deleteSection"?modal.section.title:modal.kind==="renameTopic"||modal.kind==="deleteTopic"?modal.topic.title:"";
+  const deleteText=modal.kind==="deleteSection"?`Удалить раздел «${modal.section.title}»? Удалить можно только пустой раздел.`:modal.kind==="deleteTopic"?`Удалить тему «${modal.topic.title}»? Сохранённый прогресс по ней будет удалён.`:"";
+  const remove=()=>{if(modal.kind==="deleteSection")run(()=>deleteProgramSection(programId,modal.section.id));else if(modal.kind==="deleteTopic")run(()=>deleteProgramTopic(programId,modal.topic.id))};
+  return <div className={styles.backdrop} onMouseDown={event=>{if(event.target===event.currentTarget&&!pending)close()}}><div className={styles.modal} role="dialog" aria-modal="true" aria-busy={pending}><h2>{title}</h2>{deleting?<><p>{deleteText}</p>{error&&<p className={styles.error}>{error}</p>}<ModalButtons close={close} pending={pending} submit={remove}/></>:<form onSubmit={submit}><input autoFocus name={modal.kind==="renameProgram"?"name":"title"} maxLength={modal.kind==="renameProgram"?100:modal.kind==="addTopic"||modal.kind==="renameTopic"?200:120} defaultValue={modal.kind==="renameProgram"?programName:value} required disabled={pending}/>{error&&<p className={styles.error}>{error}</p>}<ModalButtons close={close} pending={pending}/></form>}</div></div>;
 }
-
-function SortableTopic({
-  topic,
-  index,
-  disabled,
-  rename,
-  remove,
-}: {
-  topic: Topic;
-  index: number;
-  disabled: boolean;
-  rename: () => void;
-  remove: () => void;
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id: topic.id,
-    disabled,
-  });
-  return (
-    <div
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-      }}
-    >
-      <TopicRow
-        topic={topic}
-        index={index}
-        disabled={disabled}
-        rename={rename}
-        remove={remove}
-        handle={
-          <button
-            className={styles.drag}
-            {...attributes}
-            {...listeners}
-            disabled={disabled}
-            aria-label={`Изменить порядок темы «${topic.title}»`}
-          >
-            ⋮⋮
-          </button>
-        }
-      />
-    </div>
-  );
-}
+function ModalButtons({close,pending,submit}:{close:()=>void;pending:boolean;submit?:()=>void}){return <div className={styles.actions}><button type="button" onClick={close} disabled={pending}>Отмена</button><button type={submit?"button":"submit"} onClick={submit} disabled={pending}>{pending?"Сохраняем…":"Сохранить"}</button></div>}
+function TopicRow({topic,index,disabled,rename,remove,handle}:{topic:Topic;index:number;disabled:boolean;rename:()=>void;remove:()=>void;handle?:React.ReactNode}){return <article className={styles.row} aria-busy={disabled}>{handle??<span className={styles.drag}>⋮⋮</span>}<span className={styles.number}>{index+1}</span><b>{topic.title}</b><LessonActionsDropdown actions={[{label:"Переименовать",onSelect:rename},{label:"Удалить тему",onSelect:remove,danger:true}]}/></article>}
+function SortableTopic(props:Omit<Parameters<typeof TopicRow>[0],"handle">){const{attributes,listeners,setNodeRef,transform,transition}=useSortable({id:props.topic.id,disabled:props.disabled});return <div ref={setNodeRef} style={{transform:CSS.Transform.toString(transform),transition}}><TopicRow {...props} handle={<button className={styles.drag} {...attributes} {...listeners} disabled={props.disabled} aria-label={`Изменить порядок темы «${props.topic.title}»`}>⋮⋮</button>}/></div>}
