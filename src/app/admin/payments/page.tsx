@@ -21,6 +21,7 @@ type ClaimRow = {
 };
 
 type ProfileRow = { id: string; full_name: string | null; email: string | null };
+type ChildRow = ProfileRow & { parent_id: string | null };
 
 export default function PaymentsPage({ searchParams }: { searchParams: Promise<{ week?: string | string[] }> }) {
   return <PageShell><PageHeader title="Оплаты" description="Заявки Kaspi, учёт оплат по неделям и сводные поступления."/><PageContent><Suspense fallback={<PageContentLoading label="Загружаем оплаты"/>}><PaymentsContent searchParams={searchParams}/></Suspense></PageContent></PageShell>;
@@ -51,12 +52,27 @@ async function PaymentsContent({ searchParams }: { searchParams: Promise<{ week?
   if (profilesResult.error) throw profilesResult.error;
 
   const profileById = new Map(((profilesResult.data ?? []) as ProfileRow[]).map((profile) => [profile.id, profile]));
+  const reporterIds = [...new Set(claimRows.map((claim) => claim.reported_by))];
+  const childrenResult = reporterIds.length
+    ? await admin.from("profiles").select("id,parent_id,full_name,email").eq("role", "STUDENT").in("parent_id", reporterIds).order("full_name")
+    : { data: [], error: null };
+  if (childrenResult.error) throw childrenResult.error;
+  const childrenByParent = new Map<string, ChildRow[]>();
+  for (const child of (childrenResult.data ?? []) as ChildRow[]) {
+    if (!child.parent_id) continue;
+    childrenByParent.set(child.parent_id, [...(childrenByParent.get(child.parent_id) ?? []), child]);
+  }
   const claims: PaymentClaimItem[] = claimRows.map((claim) => ({
     id: claim.id,
     studentName: displayName(profileById.get(claim.student_id), "Ученик"),
     reporterName: displayName(profileById.get(claim.reported_by), "Родитель"),
     amountKzt: Number(claim.amount_kzt),
     createdAt: claim.created_at,
+    primaryStudentId: claim.student_id,
+    students: (childrenByParent.get(claim.reported_by) ?? []).map((student) => ({
+      id: student.id,
+      name: displayName(student, "Ученик"),
+    })),
   }));
 
   const dashboard = dashboardResult.data as WeeklyPaymentsDashboard | null;
