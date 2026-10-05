@@ -35,6 +35,6 @@ export default function StudentParentFinancePanel({ studentId, parents, currentP
       </div>
     </div>
 
-    <div className={styles.history}><h3>Последние операции</h3>{finance.entries.length ? <ul>{finance.entries.map((entry) => <li key={entry.id}><div><strong>{entry.type === "LESSON_CHARGE" ? `Урок${entry.durationMinutes ? ` · ${entry.durationMinutes} мин` : ""}` : entry.type === "PAYMENT" ? "Оплата" : "Корректировка"}</strong><span>{entry.note}</span><time>{new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium" }).format(new Date(entry.createdAt))}</time></div><b className={entry.amountKzt < 0 ? styles.negative : undefined}>{entry.amountKzt > 0 ? "+" : ""}{formatKzt(entry.amountKzt)}</b></li>)}</ul> : <p>Операций пока нет.</p>}</div>
+    <div className={styles.history}><h3>Последние операции</h3>{finance.entries.length ? <ul>{finance.entries.map((entry) => <li key={entry.id}><div><strong>{entry.type === "LESSON_CHARGE" ? `Урок${entry.durationMinutes ? ` · ${entry.durationMinutes} мин` : ""}` : entry.type === "PAYMENT" ? "Оплата" : "Корректировка"}</strong><span>{entry.note}</span><time>{new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium", timeZone: "Asia/Almaty" }).format(new Date(entry.lessonStartedAt ?? entry.createdAt))}</time></div><b className={entry.amountKzt < 0 ? styles.negative : undefined}>{entry.amountKzt > 0 ? "+" : ""}{formatKzt(entry.amountKzt)}</b></li>)}</ul> : <p>Операций пока нет.</p>}</div>
   </section>;
 }
