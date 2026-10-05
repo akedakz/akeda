@@ -13,21 +13,38 @@ export async function loadStudentFinance(studentId: string): Promise<StudentFina
 
   const [settingsResult, entriesResult] = await Promise.all([
     admin.from("student_finance_settings").select("rate_per_60_kzt,billing_started_at").eq("student_id", studentId).maybeSingle(),
-    admin.from("student_financial_entries").select("id,entry_type,amount_kzt,lesson_id,duration_minutes_snapshot,rate_per_60_kzt_snapshot,note,created_at").eq("student_id", studentId).order("created_at", { ascending: false }).order("id", { ascending: false }).limit(20),
+    admin.from("student_financial_entries").select("id,entry_type,amount_kzt,lesson_id,duration_minutes_snapshot,rate_per_60_kzt_snapshot,note,created_at").eq("student_id", studentId).order("created_at", { ascending: false }).order("id", { ascending: false }).limit(50),
   ]);
   if (settingsResult.error || entriesResult.error) throw settingsResult.error ?? entriesResult.error;
   const settings = settingsResult.data as SettingsRow | null;
   const rows = (entriesResult.data ?? []) as EntryRow[];
-  const balanceKzt = rows.length
-    ? await loadBalance(studentId)
-    : 0;
+  const lessonIds = [...new Set(rows.flatMap((row) => row.lesson_id ? [row.lesson_id] : []))];
+  const [balanceKzt, lessonsResult] = await Promise.all([
+    rows.length ? loadBalance(studentId) : Promise.resolve(0),
+    lessonIds.length
+      ? admin.from("student_lessons").select("id,starts_at").in("id", lessonIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (lessonsResult.error) throw lessonsResult.error;
+  const lessonStartedAt = new Map((lessonsResult.data ?? []).map((lesson) => [lesson.id, lesson.starts_at]));
+  const entries = rows.map((row) => ({
+    id: row.id,
+    type: row.entry_type,
+    amountKzt: Number(row.amount_kzt),
+    lessonId: row.lesson_id,
+    durationMinutes: row.duration_minutes_snapshot,
+    ratePer60Kzt: row.rate_per_60_kzt_snapshot,
+    note: row.note,
+    lessonStartedAt: row.lesson_id ? lessonStartedAt.get(row.lesson_id) ?? null : null,
+    createdAt: row.created_at,
+  })).sort((a, b) => Date.parse(b.lessonStartedAt ?? b.createdAt) - Date.parse(a.lessonStartedAt ?? a.createdAt)).slice(0, 20);
   const rate = settings ? Number(settings.rate_per_60_kzt) : null;
   return {
     ratePer60Kzt: rate,
     billingStartedAt: settings?.billing_started_at ?? null,
     balanceKzt,
     remainingLessonEquivalents: rate ? Math.max(balanceKzt, 0) / rate : null,
-    entries: rows.map((row) => ({ id: row.id, type: row.entry_type, amountKzt: Number(row.amount_kzt), lessonId: row.lesson_id, durationMinutes: row.duration_minutes_snapshot, ratePer60Kzt: row.rate_per_60_kzt_snapshot, note: row.note, createdAt: row.created_at })),
+    entries,
   };
 }
 
