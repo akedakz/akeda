@@ -8,6 +8,7 @@ export type StudentFinanceEntry = {
   durationMinutes: number | null;
   ratePer60Kzt: number | null;
   note: string | null;
+  lessonStartedAt: string | null;
   createdAt: string;
 };
 

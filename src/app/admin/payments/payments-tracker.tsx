@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addWeeklyPaymentRow, copyPreviousWeek, deleteWeeklyPaymentRow, saveWeeklyPaymentRow, setWeeklyPaymentPaid } from "./actions";
-import { formatKzt, type WeeklyPaymentRow, type WeeklyPaymentsDashboard } from "@/lib/payments/types";
+import { formatKzt, type WeeklyPaymentRow, type WeeklyPaymentsDashboard, type WeeklyReceivedPayment } from "@/lib/payments/types";
 import { addDays } from "@/lib/payments/week";
 import { releasePending, tryAcquirePending } from "@/lib/ui/pending-guard";
 import styles from "./payments.module.css";
 
 const rangeFormatter = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", timeZone: "UTC" });
 const shortDate = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", timeZone: "Asia/Almaty" });
+const receivedDate = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Almaty" });
 const subjects = ["Физика", "Математика", "Физика и математика", "Другое"];
 type Draft = { studentName: string; subject: string; price: string; lessons: string; notes: string };
 type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -27,6 +28,7 @@ function draftRow(): WeeklyPaymentRow {
 export default function PaymentsTracker({ weekStart, currentWeek, initial }: { weekStart: string; currentWeek: string; initial: WeeklyPaymentsDashboard }) {
   const router = useRouter();
   const [rows, setRows] = useState(initial.rows);
+  const receipts = initial.received_payments ?? [];
   const [error, setError] = useState("");
   const [studentsOpen, setStudentsOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -69,15 +71,34 @@ export default function PaymentsTracker({ weekStart, currentWeek, initial }: { w
     <section className={styles.tableCard} aria-busy={pending}>
       <div className={styles.tableScroll}>
         <div className={styles.tableHead}><span>Ученик</span><span>Предмет</span><span>Цена за урок</span><span>Уроки</span><span>Сумма</span><span>Оплачено</span><span>Заметка</span><span/></div>
-        <div className={styles.rows}>{rows.map(row => <PaymentRow key={row.id} weekStart={weekStart} row={row} setPaid={setPaid} onError={setError} onCreated={(draftId, created) => setRows(current => current.map(item => item.id === draftId ? created : item))} onChanged={(id, changes) => setRows(current => current.map(item => item.id === id ? { ...item, ...changes } : item))} onDeleted={id => setRows(current => current.filter(item => item.id !== id))}/>)}</div>
+        <div className={styles.rows}>
+          {receipts.map(payment => <ReceivedPaymentRow key={payment.id} payment={payment}/>)}
+          {rows.map(row => <PaymentRow key={row.id} weekStart={weekStart} row={row} setPaid={setPaid} onError={setError} onCreated={(draftId, created) => setRows(current => current.map(item => item.id === draftId ? created : item))} onChanged={(id, changes) => setRows(current => current.map(item => item.id === id ? { ...item, ...changes } : item))} onDeleted={id => setRows(current => current.filter(item => item.id !== id))}/>)}
+        </div>
         <datalist id="payment-subjects">{subjects.map(subject => <option key={subject} value={subject}/>)}</datalist>
       </div>
-      {!rows.length && <div className={styles.empty}><strong>На этой неделе строк пока нет</strong><span>Добавьте строку вручную или скопируйте прошлую неделю.</span></div>}
+      {!rows.length && !receipts.length && <div className={styles.empty}><strong>На этой неделе строк пока нет</strong><span>Добавьте строку вручную или скопируйте прошлую неделю.</span></div>}
       <div className={styles.tableActions}><button className={styles.primary} onClick={addDraft}>+ Добавить</button><button disabled={pending || rows.length > 0} title={rows.length ? "Копирование доступно только для пустой недели" : undefined} onClick={copy}>Скопировать прошлую неделю</button></div>
     </section>
 
     <section className={styles.statistics}><h2>Поступления</h2><div><Summary label="Неделя" value={Number(initial.actual_received.week_kzt)}/><Summary label="Месяц" value={Number(initial.actual_received.month_kzt)}/><Summary label="Год" value={Number(initial.actual_received.year_kzt)}/></div></section>
     {studentsOpen && <StudentsModal students={initial.students} close={() => setStudentsOpen(false)}/>}
+  </div>;
+}
+
+function ReceivedPaymentRow({ payment }: { payment: WeeklyReceivedPayment }) {
+  return <div className={`${styles.paymentRow} ${styles.receivedRow}`} data-paid>
+    <strong>{payment.student_name}</strong>
+    <span className={styles.readonlyCell}>{payment.source_label}</span>
+    <span className={styles.readonlyCell}>—</span>
+    <span className={styles.readonlyCell}>—</span>
+    <strong data-paid>{formatKzt(Number(payment.amount_kzt))}</strong>
+    <span className={styles.receivedCheck} aria-label="Оплачено">✓</span>
+    <div className={styles.receivedNote}>
+      <span>{payment.note || "Полученная оплата"}</span>
+      <small>{receivedDate.format(new Date(payment.received_at))}</small>
+    </div>
+    <span className={styles.receivedBadge}>Получено</span>
   </div>;
 }
 
