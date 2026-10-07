@@ -1,5 +1,6 @@
-import Link from "next/link";
 "use client";
+
+import Link from "next/link";
 
 import BackLink from "@/components/back-link";
 import LessonActionsDropdown from "@/components/students/lesson-actions-dropdown";
