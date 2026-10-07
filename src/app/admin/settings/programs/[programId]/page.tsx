@@ -15,12 +15,13 @@ export default async function ProgramPage({ params }: { params: Promise<{ progra
 
   if (program.error || !program.data) notFound();
 
-  const [sections, topics] = await Promise.all([
+  const [sections, topics, generators] = await Promise.all([
     admin.from("learning_program_sections").select("id,title,sort_order").eq("program_id",programId).order("sort_order").order("id"),
     admin.from("learning_program_topics").select("id,section_id,title,sort_order").eq("program_id",programId).order("sort_order").order("id"),
+    admin.from("learning_program_skill_generators").select("program_topic_id").eq("is_active", true),
   ]);
 
-  if (sections.error || topics.error) throw new Error("Не удалось загрузить структуру программы.");
+  if (sections.error || topics.error || generators.error) throw new Error("Не удалось загрузить структуру программы.");
 
   return (
     <ProgramEditor
@@ -28,6 +29,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ progra
       program={program.data}
       initialSections={sections.data ?? []}
       initialTopics={topics.data ?? []}
+      practiceTopicIds={(generators.data ?? []).map((item) => item.program_topic_id)}
     />
   );
 }
