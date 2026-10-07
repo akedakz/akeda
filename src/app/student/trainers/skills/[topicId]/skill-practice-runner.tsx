@@ -20,41 +20,9 @@ function formatSkillMath(source: string) {
   if (source.includes("$")) return source;
   return source
     .replace(/(-?\d+)\s+(\d+)\/(\d+)/g, (_match, whole, numerator, denominator) =>
-      `${whole}\\frac{${numerator}}{${denominator}}"use client";
-
-import { useMemo, useState, useTransition } from "react";
-import MathText from "@/components/tests/math-text";
-import { startStudentSkillAttempt, submitStudentSkillAttempt } from "./actions";
-import styles from "./skill-practice.module.css";
-
-type Task = {
-  id: string;
-  position: number;
-  prompt: string;
-  difficulty: "BASIC" | "CORE" | "CHALLENGE";
-};
-
-type Result = { taskId: string; correct: boolean; expectedAnswer: string };
-
-)
+      "$" + whole + "\\frac{" + numerator + "}{" + denominator + "}$")
     .replace(/(-?\d+)\/(\d+)/g, (_match, numerator, denominator) =>
-      `$\\frac{${numerator}}{${denominator}}"use client";
-
-import { useMemo, useState, useTransition } from "react";
-import MathText from "@/components/tests/math-text";
-import { startStudentSkillAttempt, submitStudentSkillAttempt } from "./actions";
-import styles from "./skill-practice.module.css";
-
-type Task = {
-  id: string;
-  position: number;
-  prompt: string;
-  difficulty: "BASIC" | "CORE" | "CHALLENGE";
-};
-
-type Result = { taskId: string; correct: boolean; expectedAnswer: string };
-
-);
+      "$\\frac{" + numerator + "}{" + denominator + "}$");
 }
 
 export default function SkillPracticeRunner({ topicId, mastered }: { topicId: string; mastered: boolean }) {
