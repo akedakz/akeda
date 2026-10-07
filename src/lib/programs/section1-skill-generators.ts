@@ -31,8 +31,8 @@ export function normalizeNumericAnswer(raw:string):string|null{
   let s=raw.trim().replaceAll("−","-").replaceAll(",",".").replace(/\s*\/\s*/g,"/").replace(/\s+/g," ");
   if(!s)return null;
   let m=s.match(/^([+-]?)(\d+) (\d+)\/(\d+)$/);
-  if(m){const sign=m[1]==="-"?-1n:1n,whole=BigInt(m[2]),num=BigInt(m[3]),den=BigInt(m[4]);if(den===0n)return null;return canonical(R(sign*(whole*den+num),den));}
-  m=s.match(/^([+-]?\d+)\/(\d+)$/); if(m){const den=BigInt(m[2]);if(den===0n)return null;return canonical(R(BigInt(m[1]),den));}
-  m=s.match(/^([+-]?)(\d+)(?:\.(\d+))?$/); if(m){const sign=m[1]==="-"?-1n:1n,whole=m[2],frac=m[3]??"";const n=BigInt(whole+frac)*sign,d=10n**BigInt(frac.length);return canonical(R(n,d));}
+  if(m){const sign=m[1]==="-"?-BigInt(1):BigInt(1),whole=BigInt(m[2]),num=BigInt(m[3]),den=BigInt(m[4]);if(den===BigInt(0))return null;return canonical(R(sign*(whole*den+num),den));}
+  m=s.match(/^([+-]?\d+)\/(\d+)$/); if(m){const den=BigInt(m[2]);if(den===BigInt(0))return null;return canonical(R(BigInt(m[1]),den));}
+  m=s.match(/^([+-]?)(\d+)(?:\.(\d+))?$/); if(m){const sign=m[1]==="-"?-BigInt(1):BigInt(1),whole=m[2],frac=m[3]??"";const n=BigInt(whole+frac)*sign,d=BigInt(10)**BigInt(frac.length);return canonical(R(n,d));}
   return null;
 }
