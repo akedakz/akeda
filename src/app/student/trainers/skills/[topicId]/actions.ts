@@ -36,8 +36,6 @@ export async function startStudentSkillAttempt(topicId: string): Promise<StartRe
 
   const access = await loadStudentSkillAccess(profile.id, topicId);
   if (!access) return { ok: false, message: "Этот навык вам не назначен." };
-  if (access.generator.generator_key !== "gcd_pair_v1") return { ok: false, message: "Этот генератор пока не поддерживается." };
-
   let generated;
   try {
     generated = generateSkillTasks(access.generator.generator_key, access.generator.config);
