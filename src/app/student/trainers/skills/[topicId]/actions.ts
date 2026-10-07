@@ -1,7 +1,8 @@
 "use server";
 
 import { getCurrentProfile } from "@/lib/auth/get-current-profile";
-import { generateGcdTasks } from "@/lib/programs/skill-generators.server";
+import { generateSkillTasks } from "@/lib/programs/skill-generators.server";
+import { normalizeNumericAnswer } from "@/lib/programs/section1-skill-generators";
 import { loadStudentSkillAccess } from "@/lib/programs/student-skill-practice";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -39,7 +40,7 @@ export async function startStudentSkillAttempt(topicId: string): Promise<StartRe
 
   let generated;
   try {
-    generated = generateGcdTasks(access.generator.config);
+    generated = generateSkillTasks(access.generator.generator_key, access.generator.config);
   } catch (error) {
     console.error("STUDENT_SKILL_GENERATOR", error);
     return { ok: false, message: "Не удалось сгенерировать набор задач." };
@@ -90,7 +91,9 @@ export async function submitStudentSkillAttempt(attemptId: string, answers: { ta
   const answerObject: Record<string, string> = {};
   for (const item of answers) {
     if (!uuid.test(item.taskId)) return { ok: false, message: "Некорректный ответ." };
-    answerObject[item.taskId] = item.answer.trim();
+    const normalized = normalizeNumericAnswer(item.answer);
+    if (!normalized) return { ok: false, message: "Введите число, десятичную дробь или обычную дробь." };
+    answerObject[item.taskId] = normalized;
   }
 
   const admin = createAdminClient();
@@ -117,7 +120,7 @@ export async function submitStudentSkillAttempt(attemptId: string, answers: { ta
     const messages: Record<string, string> = {
       invalid_answers: "Ответьте на все задания.",
       incomplete: "Ответьте на все задания.",
-      invalid_answer: "В этом навыке ответ должен быть целым числом.",
+      invalid_answer: "Введите число, десятичную дробь или обычную дробь.",
       already_completed: "Эта попытка уже завершена.",
       not_assigned: "Этот навык больше не назначен.",
       attempt_not_found: "Попытка не найдена.",
