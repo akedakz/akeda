@@ -61,7 +61,7 @@ export default function SkillPracticeRunner({ topicId, mastered }: { topicId: st
 
     {tasks.length > 0 && <>
       <div className={styles.topbar}>
-        <div><strong>{results.length ? notice : "Решите все 10 задач"}</strong><span>Ответы вводятся вручную.</span></div>
+        <div><strong>{results.length ? notice : "Решите все 10 задач"}</strong><span>Можно вводить целое число, десятичную дробь или обычную дробь.</span></div>
         {results.length > 0 && <button onClick={start} disabled={pending}>Новые 10 задач</button>}
       </div>
       <section className={styles.tasks}>
@@ -72,11 +72,11 @@ export default function SkillPracticeRunner({ topicId, mastered }: { topicId: st
             <strong>{task.prompt}</strong>
             <label>Ответ
               <input
-                inputMode="numeric"
+                inputMode="text"
                 value={answers[task.id] ?? ""}
                 disabled={pending || results.length > 0}
                 onChange={(event) => setAnswers((current) => ({ ...current, [task.id]: event.target.value }))}
-                placeholder="Введите целое число"
+                placeholder="Например: 12, 3,5 или 5/8"
               />
             </label>
             {checked && <p>{checked.correct ? "Верно ✓" : `Неверно. Правильный ответ: ${checked.expectedAnswer}`}</p>}
