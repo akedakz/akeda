@@ -30,7 +30,7 @@ export default async function SkillPreviewPage({ params }: { params: Promise<{ p
     topicId={topicId}
     programName={program.data.name}
     topicTitle={topic.data.title}
-    backHref={`/admin/programs/${programId}`}
+    backHref={`/admin/settings/programs/${programId}`}
     rules={rules}
   />;
 }
