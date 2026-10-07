@@ -28,11 +28,11 @@ export function templates110():Template[]{return [
   {id:"1.10-B",difficulty:"CORE",make:()=>{const baseD=pick([2,4,5,8,10,20,25]),n=ri(1,baseD-1),g=ri(2,6),r=R(n,baseD);return task("1.10-B","CORE",`${n*g}/${baseD*g} = ? (десятичной дробью)`,r,displayDecimal(r));}},
   {id:"1.10-C",difficulty:"CORE",make:()=>{const d=pick([2,4,5,8,10,20]),whole=ri(1,9),n=whole*d+ri(1,d-1),r=R(n,d);return task("1.10-C","CORE",`${n}/${d} = ? (десятичной дробью)`,r,displayDecimal(r));}},
   {id:"1.10-D",difficulty:"BASIC",make:()=>{const scale=ri(1,2),value=ri(1,10**scale-1),r=R(value,10**scale);return task("1.10-D","BASIC",`${displayDecimal(r,scale)} = ? (обыкновенной дробью)`,r,displayFraction(r));}},
-  {id:"1.10-E",difficulty:"CORE",make:()=>{const scale=ri(2,3),whole=ri(1,9);let r=R(whole*10**scale+ri(1,10**scale-1),10**scale);while(r.d>100n)r=R(whole*10**scale+ri(1,10**scale-1),10**scale);return task("1.10-E","CORE",`${displayDecimal(r,scale)} = ? (обыкновенной дробью)`,r,displayFraction(r));}},
-  {id:"1.10-F",difficulty:"CHALLENGE",make:()=>{let r=R(ri(100,4999),1000);while(r.d>40n)r=R(ri(100,4999),1000);return task("1.10-F","CHALLENGE",`${displayDecimal(r,3)} = ? (обыкновенной дробью)`,r,displayFraction(r));}},
+  {id:"1.10-E",difficulty:"CORE",make:()=>{const scale=ri(2,3),whole=ri(1,9);let r=R(whole*10**scale+ri(1,10**scale-1),10**scale);while(r.d>BigInt(100))r=R(whole*10**scale+ri(1,10**scale-1),10**scale);return task("1.10-E","CORE",`${displayDecimal(r,scale)} = ? (обыкновенной дробью)`,r,displayFraction(r));}},
+  {id:"1.10-F",difficulty:"CHALLENGE",make:()=>{let r=R(ri(100,4999),1000);while(r.d>BigInt(40))r=R(ri(100,4999),1000);return task("1.10-F","CHALLENGE",`${displayDecimal(r,3)} = ? (обыкновенной дробью)`,r,displayFraction(r));}},
   {id:"1.10-G",difficulty:"CHALLENGE",make:()=>{const whole=ri(1,9),d0=pick([2,4,5,8,10,20]),f=R(ri(1,d0-1),d0),r=add(R(whole),f);const n=Number(f.n),d=Number(f.d);return task("1.10-G","CHALLENGE",`${whole} ${n}/${d} = ? (десятичной дробью)`,r,displayDecimal(r));}},
 ];}
-function recurringFraction(integerPart:number,nonRep:string,rep:string){ const n=nonRep.length,m=rep.length;const A=BigInt(`${integerPart}${nonRep}${rep}`),B=BigInt(`${integerPart}${nonRep}`);const den=(10n**BigInt(n))*(10n**BigInt(m)-1n);return R(A-B,den); }
+function recurringFraction(integerPart:number,nonRep:string,rep:string){ const n=nonRep.length,m=rep.length;const A=BigInt(`${integerPart}${nonRep}${rep}`),B=BigInt(`${integerPart}${nonRep}`);const den=(BigInt(10)**BigInt(n))*(BigInt(10)**BigInt(m)-BigInt(1));return R(A-B,den); }
 export function templates111():Template[]{return [
   {id:"1.11-A",difficulty:"BASIC",make:()=>{const d=ri(1,8),r=R(d,9);return task("1.11-A","BASIC",`0,(${d}) = ? (обыкновенной дробью)`,r,displayFraction(r));}},
   {id:"1.11-B",difficulty:"CORE",make:()=>{let p=ri(10,98);if(p===99)p=98;const r=R(p,99);return task("1.11-B","CORE",`0,(${p}) = ? (обыкновенной дробью)`,r,displayFraction(r));}},
@@ -51,7 +51,7 @@ export function templates112():Template[]{return [
   {id:"1.12-E",difficulty:"CHALLENGE",make:()=>{const r=R(ri(1,999),1000),m=pick([10,100,1000]),ans=mul(r,R(m));return task("1.12-E","CHALLENGE",`${displayDecimal(r,3)} × ${m} = ?`,ans,displayDecimal(ans));}},
   {id:"1.12-F",difficulty:"CORE",make:()=>{const base=R(ri(1,9999),100),m=pick([10,100,1000]);const result=mul(base,R(m));return intTask("1.12-F","CORE",`${displayDecimal(base,2)} × ? = ${displayDecimal(result)}. Найдите множитель.`,m);}},
 ];}
-function roundHalfUp(r:Rat,scale:number){ const factor=10n**BigInt(scale); const num=r.n*factor; const q=num/r.d; const rem=num%r.d; const sign=r.n<0n?-1n:1n; const ar=rem<0n?-rem:rem; const rounded=ar*2n>=r.d?q+sign:q; return R(rounded,factor); }
+function roundHalfUp(r:Rat,scale:number){ const factor=BigInt(10)**BigInt(scale); const num=r.n*factor; const q=num/r.d; const rem=num%r.d; const sign=r.n<BigInt(0)?-BigInt(1):BigInt(1); const ar=rem<BigInt(0)?-rem:rem; const rounded=ar*BigInt(2)>=r.d?q+sign:q; return R(rounded,factor); }
 export function templates113():Template[]{return [
   {id:"1.13-A",difficulty:"BASIC",make:()=>{const place=pick([10,100,1000]),n=ri(100,999999),ans=Math.floor((n+place/2)/place)*place;const word=place===10?"десятков":place===100?"сотен":"тысяч";return intTask("1.13-A","BASIC",`Округлите ${n} до ${word}.`,ans);}},
   {id:"1.13-B",difficulty:"BASIC",make:()=>{const r=R(ri(1,9999),10),ans=roundHalfUp(r,0);return task("1.13-B","BASIC",`Округлите ${displayDecimal(r,1)} до целых.`,ans,String(ans.n));}},
