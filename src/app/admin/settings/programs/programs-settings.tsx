@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import BackLink from "@/components/back-link";
 import { archiveProgram, createProgram } from "./actions";
 import styles from "../settings-list.module.css";
 
@@ -31,9 +30,8 @@ export default function ProgramsSettings({ programs }: { programs: Program[] }) 
 
   return (
     <div className={styles.page}>
-      <BackLink href="/admin/settings">Настройки</BackLink>
       <header>
-        <span>Настройки</span>
+        <span>Программы обучения</span>
         <h1>Программы</h1>
         <p>Создайте программу, добавьте темы в нужном порядке и назначайте её ученикам.</p>
       </header>
