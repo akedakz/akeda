@@ -9,16 +9,17 @@ import styles from "./admin-sidebar.module.css";
 const navigation = [
   { href: "/admin", label: "Обзор", icon: "overview", exact: true },
   { href: "/admin/students", label: "Ученики", icon: "students" },
+  { href: "/admin/settings/programs", label: "Программы", icon: "programs" },
   { href: "/admin/payments", label: "Оплаты", icon: "payments" },
   { href: "/admin/tests", label: "Тесты", icon: "tests" },
   { href: "/admin/materials", label: "Материалы", icon: "materials" },
   { href: "/admin/trainers", label: "Тренажёры", icon: "trainers" },
   { href: "/admin/analytics", label: "Аналитика", icon: "analytics" },
-  { href: "/admin/settings", label: "Настройки", icon: "settings" },
+  { href: "/admin/settings", label: "Настройки", icon: "settings", exact: true },
 ] as const;
 
-const mobileMain = [navigation[0], navigation[1], navigation[3], navigation[4]].map(toMobileItem);
-const mobileMore = [navigation[2], navigation[5], navigation[6], navigation[7]].map(toMobileItem);
+const mobileMain = [navigation[0], navigation[1], navigation[4], navigation[5]].map(toMobileItem);
+const mobileMore = [navigation[2], navigation[3], navigation[6], navigation[7], navigation[8]].map(toMobileItem);
 
 function Navigation({ className }: { className?: string }) {
   return (
