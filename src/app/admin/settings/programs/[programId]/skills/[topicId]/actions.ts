@@ -1,7 +1,8 @@
 "use server";
 
 import { getCurrentProfile } from "@/lib/auth/get-current-profile";
-import { generateGcdTasks } from "@/lib/programs/skill-generators.server";
+import { generateSkillTasks } from "@/lib/programs/skill-generators.server";
+import { normalizeNumericAnswer } from "@/lib/programs/section1-skill-generators";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type StartResult = {
@@ -42,13 +43,9 @@ export async function startSkillGeneratorPreview(programId: string, topicId: str
     return { ok: false, message: "Генератор навыка не найден." };
   }
 
-  if (generator.data.generator_key !== "gcd_pair_v1") {
-    return { ok: false, message: "Этот тип генератора пока не поддерживается." };
-  }
-
   let generated;
   try {
-    generated = generateGcdTasks(generator.data.config);
+    generated = generateSkillTasks(generator.data.generator_key, generator.data.config);
   } catch (error) {
     console.error("SKILL_GENERATOR_CREATE", error);
     return { ok: false, message: "Не удалось сгенерировать набор задач." };
@@ -113,7 +110,7 @@ export async function submitSkillGeneratorPreview(
   if (attempt.data.status !== "OPEN") return { ok: false, message: "Эта попытка уже завершена." };
 
   const tasks = await ctx.admin.from("learning_skill_practice_tasks")
-    .select("id,expected_answer")
+    .select("id,expected_answer,parameters")
     .eq("attempt_id", attemptId)
     .order("position");
 
@@ -128,18 +125,22 @@ export async function submitSkillGeneratorPreview(
 
   const normalized = tasks.data.map((task) => {
     const raw = answerMap.get(task.id) ?? "";
-    if (!/^[+-]?\d+$/.test(raw)) return null;
-    const submitted = String(Number(raw));
+    const submitted = normalizeNumericAnswer(raw);
+    if (!submitted) return null;
+    const params = task.parameters && typeof task.parameters === "object"
+      ? task.parameters as Record<string, unknown>
+      : {};
     return {
       taskId: task.id,
       submitted,
       expected: task.expected_answer,
+      expectedDisplay: typeof params.answer_display === "string" ? params.answer_display : task.expected_answer,
       correct: submitted === task.expected_answer,
     };
   });
 
   if (normalized.some((item) => item === null)) {
-    return { ok: false, message: "В этом навыке ответ должен быть целым числом." };
+    return { ok: false, message: "Введите число, десятичную дробь или обычную дробь." };
   }
 
   const checked = normalized as NonNullable<(typeof normalized)[number]>[];
@@ -174,7 +175,7 @@ export async function submitSkillGeneratorPreview(
     results: checked.map((item) => ({
       taskId: item.taskId,
       correct: item.correct,
-      expectedAnswer: item.expected,
+      expectedAnswer: item.expectedDisplay,
     })),
   };
 }
