@@ -12,18 +12,18 @@ export default async function SkillPreviewPage({ params }: { params: Promise<{ p
     admin.from("learning_program_skill_generators").select("generator_key,config").eq("program_topic_id", topicId).eq("is_active", true).maybeSingle(),
   ]);
   if (program.error || topic.error || generator.error || !program.data || !topic.data || !generator.data) notFound();
-  if (generator.data.generator_key !== "gcd_pair_v1") notFound();
 
-  const config = parseGcdGeneratorConfig(generator.data.config);
-  const rules = config.levels.map((level) => ({
-    key: level.key === "BASIC" ? "Базовый" : level.key === "CORE" ? "Основной" : "Повышенный",
-    count: level.count,
-    gcdMin: level.gcd_min,
-    gcdMax: level.gcd_max,
-    multiplierMin: level.multiplier_min,
-    multiplierMax: level.multiplier_max,
-    valueMax: level.value_max,
-  }));
+  const rules = generator.data.generator_key === "gcd_pair_v1"
+    ? parseGcdGeneratorConfig(generator.data.config).levels.map((level) => ({
+        key: level.key === "BASIC" ? "Базовый" : level.key === "CORE" ? "Основной" : "Повышенный",
+        count: level.count,
+        gcdMin: level.gcd_min,
+        gcdMax: level.gcd_max,
+        multiplierMin: level.multiplier_min,
+        multiplierMax: level.multiplier_max,
+        valueMax: level.value_max,
+      }))
+    : [];
 
   return <SkillGeneratorPreview
     programId={programId}
