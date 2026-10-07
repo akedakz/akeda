@@ -1,6 +1,7 @@
 "server-only";
 
 import { randomInt } from "node:crypto";
+import { generateSection1Tasks, isSection1Generator } from "./section1-skill-generators";
 
 type GcdLevel = {
   key: "BASIC" | "CORE" | "CHALLENGE";
@@ -23,7 +24,7 @@ export type GeneratedSkillTask = {
   prompt: string;
   expectedAnswer: string;
   difficulty: GcdLevel["key"];
-  parameters: Record<string, number>;
+  parameters: Record<string, string | number | boolean>;
 };
 
 function gcd(a: number, b: number) {
@@ -113,4 +114,11 @@ export function generateGcdTasks(configValue: unknown): GeneratedSkillTask[] {
     for (let i = 0; i < level.count; i += 1) tasks.push(generateOne(level, used, config));
   }
   return tasks;
+}
+
+
+export function generateSkillTasks(generatorKey: string, configValue: unknown): GeneratedSkillTask[] {
+  if (generatorKey === "gcd_pair_v1") return generateGcdTasks(configValue);
+  if (isSection1Generator(generatorKey)) return generateSection1Tasks(generatorKey, configValue);
+  throw new Error("Неизвестный тип генератора навыка.");
 }
