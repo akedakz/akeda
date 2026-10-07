@@ -26,13 +26,18 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 
 function answerKindFor(task: { expectedAnswer: string; parameters: Record<string, string | number | boolean> }) {
   const display = typeof task.parameters.answer_display === "string" ? task.parameters.answer_display.trim() : "";
-  if (/^-?\d+\s+\d+\/\d+$/.test(display)) return "mixed" as const;
-  if (display.includes("/") || task.expectedAnswer.includes("/")) {
-    const match = task.expectedAnswer.match(/^(-?\d+)\/(\d+)$/);
-    if (match && Math.abs(Number(match[1])) > Number(match[2])) return "mixed" as const;
-    return "fraction" as const;
+
+  // The input UI must follow the format the task asks the student to enter,
+  // not the canonical exact value used internally for checking.
+  if (display) {
+    if (/^-?\d+\s+\d+\/\d+$/.test(display)) return "mixed" as const;
+    if (display.includes("/")) return "fraction" as const;
+    if (display.includes(",") || display.includes(".")) return "decimal" as const;
+    return "integer" as const;
   }
-  if (display.includes(",") || display.includes(".")) return "decimal" as const;
+
+  // Fallback for older generators without answer_display metadata.
+  if (task.expectedAnswer.includes("/")) return "fraction" as const;
   return "integer" as const;
 }
 
