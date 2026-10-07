@@ -10,7 +10,7 @@ type StartResult = {
   ok: boolean;
   message: string;
   attemptId?: string;
-  tasks?: { id: string; position: number; prompt: string; difficulty: "BASIC" | "CORE" | "CHALLENGE" }[];
+  tasks?: { id: string; position: number; prompt: string; difficulty: "BASIC" | "CORE" | "CHALLENGE"; answerKind: "integer" | "decimal" | "fraction" | "mixed" }[];
 };
 
 type SubmitResult = {
@@ -23,6 +23,18 @@ type SubmitResult = {
 };
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function answerKindFor(task: { expectedAnswer: string; parameters: Record<string, string | number | boolean> }) {
+  const display = typeof task.parameters.answer_display === "string" ? task.parameters.answer_display.trim() : "";
+  if (/^-?\d+\s+\d+\/\d+$/.test(display)) return "mixed" as const;
+  if (display.includes("/") || task.expectedAnswer.includes("/")) {
+    const match = task.expectedAnswer.match(/^(-?\d+)\/(\d+)$/);
+    if (match && Math.abs(Number(match[1])) > Number(match[2])) return "mixed" as const;
+    return "fraction" as const;
+  }
+  if (display.includes(",") || display.includes(".")) return "decimal" as const;
+  return "integer" as const;
+}
 
 async function student() {
   const current = await getCurrentProfile();
@@ -77,6 +89,7 @@ export async function startStudentSkillAttempt(topicId: string): Promise<StartRe
       position: task.position,
       prompt: task.prompt,
       difficulty: task.difficulty as "BASIC" | "CORE" | "CHALLENGE",
+      answerKind: answerKindFor(generated[task.position - 1]),
     })),
   };
 }
