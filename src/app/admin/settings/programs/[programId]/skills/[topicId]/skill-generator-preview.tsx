@@ -73,17 +73,17 @@ export default function SkillGeneratorPreview({
 
     <section className={styles.rules}>
       <div>
-        <h2>Как ограничен генератор</h2>
-        <p>Мы не выбираем два случайных числа из огромного диапазона. Сначала выбирается НОД <b>g</b>, затем два взаимно простых множителя <b>m</b> и <b>n</b>. Числа строятся как <b>g·m</b> и <b>g·n</b>. Поэтому НОД гарантированно равен g.</p>
+        <h2>Как работает генератор</h2>
+        {rules.length ? <p>Для НОД числа строятся из заранее выбранного общего делителя и взаимно простых множителей, поэтому правильный ответ гарантирован математически.</p> : <p>Каждая попытка собирается из фиксированных шаблонов этого навыка. Диапазоны чисел и ограничения заданы в коде; правильный ответ вычисляется точной арифметикой на сервере, а не ИИ.</p>}
       </div>
-      <div className={styles.ruleGrid}>
+      {rules.length > 0 && <div className={styles.ruleGrid}>
         {rules.map((rule) => <article key={rule.key}>
           <strong>{rule.key} · {rule.count} задачи</strong>
           <span>НОД: {rule.gcdMin}–{rule.gcdMax}</span>
           <span>Множители: {rule.multiplierMin}–{rule.multiplierMax}</span>
           <span>Числа не больше {rule.valueMax}</span>
         </article>)}
-      </div>
+      </div>}
     </section>
 
     <div className={styles.toolbar}>
@@ -99,11 +99,11 @@ export default function SkillGeneratorPreview({
           <strong>{task.prompt}</strong>
           <label>Ответ
             <input
-              inputMode="numeric"
+              inputMode="text"
               value={answers[task.id] ?? ""}
               disabled={pending || results.length > 0}
               onChange={(event) => setAnswers((current) => ({ ...current, [task.id]: event.target.value }))}
-              placeholder="Введите целое число"
+              placeholder="Например: 12, 3,5 или 5/8"
             />
           </label>
           {checked && <p>{checked.correct ? "Верно ✓" : `Неверно. Правильный ответ: ${checked.expectedAnswer}`}</p>}
