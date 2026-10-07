@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import MathText from "@/components/tests/math-text";
 import { startStudentSkillAttempt, submitStudentSkillAttempt } from "./actions";
 import styles from "./skill-practice.module.css";
 
@@ -14,6 +15,47 @@ type Task = {
 type Result = { taskId: string; correct: boolean; expectedAnswer: string };
 
 const labels = { BASIC: "Базовый", CORE: "Основной", CHALLENGE: "Повышенный" } as const;
+
+function formatSkillMath(source: string) {
+  if (source.includes("$")) return source;
+  return source
+    .replace(/(-?\d+)\s+(\d+)\/(\d+)/g, (_match, whole, numerator, denominator) =>
+      `${whole}\\frac{${numerator}}{${denominator}}"use client";
+
+import { useMemo, useState, useTransition } from "react";
+import MathText from "@/components/tests/math-text";
+import { startStudentSkillAttempt, submitStudentSkillAttempt } from "./actions";
+import styles from "./skill-practice.module.css";
+
+type Task = {
+  id: string;
+  position: number;
+  prompt: string;
+  difficulty: "BASIC" | "CORE" | "CHALLENGE";
+};
+
+type Result = { taskId: string; correct: boolean; expectedAnswer: string };
+
+)
+    .replace(/(-?\d+)\/(\d+)/g, (_match, numerator, denominator) =>
+      `$\\frac{${numerator}}{${denominator}}"use client";
+
+import { useMemo, useState, useTransition } from "react";
+import MathText from "@/components/tests/math-text";
+import { startStudentSkillAttempt, submitStudentSkillAttempt } from "./actions";
+import styles from "./skill-practice.module.css";
+
+type Task = {
+  id: string;
+  position: number;
+  prompt: string;
+  difficulty: "BASIC" | "CORE" | "CHALLENGE";
+};
+
+type Result = { taskId: string; correct: boolean; expectedAnswer: string };
+
+);
+}
 
 export default function SkillPracticeRunner({ topicId, mastered }: { topicId: string; mastered: boolean }) {
   const [attemptId, setAttemptId] = useState<string | null>(null);
@@ -69,7 +111,7 @@ export default function SkillPracticeRunner({ topicId, mastered }: { topicId: st
           const checked = resultMap.get(task.id);
           return <article key={task.id} data-correct={checked?.correct === true || undefined} data-wrong={checked?.correct === false || undefined}>
             <div className={styles.taskHead}><span>№ {task.position}</span><small>{labels[task.difficulty]}</small></div>
-            <strong>{task.prompt}</strong>
+            <strong><MathText>{formatSkillMath(task.prompt)}</MathText></strong>
             <label>Ответ
               <input
                 inputMode="text"
@@ -79,7 +121,7 @@ export default function SkillPracticeRunner({ topicId, mastered }: { topicId: st
                 placeholder="Например: 12, 3,5 или 5/8"
               />
             </label>
-            {checked && <p>{checked.correct ? "Верно ✓" : `Неверно. Правильный ответ: ${checked.expectedAnswer}`}</p>}
+            {checked && <p>{checked.correct ? "Верно ✓" : <>Неверно. Правильный ответ: <MathText>{formatSkillMath(checked.expectedAnswer)}</MathText></>}</p>}
           </article>;
         })}
       </section>
