@@ -78,12 +78,9 @@ const skills: Record<number, (() => GeneratedSection1Task)[]> = {
     () => { const n = pick(primes) ** ri(2, 5); return Q(`Разложите ${M(n)} на простые множители.`, n, { op: "factorization", args: [n] }, "factorization"); },
   ],
   3: [
-    () => { const n = ri(10, 999); return Q(`Определите чётность ${M(n)}. Введите ${M(0)} для чётного и ${M(1)} для нечётного.`, n % 2, { op: "parity", args: [n] }); },
-    ...["sum", "difference", "product"].map(op => () => { const a = ri(100, 900), b = ri(10, 99), n = op === "sum" ? a + b : op === "difference" ? a - b : a * b; return Q(`Определите чётность ${M(`${a}${op === "sum" ? "+" : op === "difference" ? "-" : "\\cdot"}${b}`)}. Введите ${M(0)} для чётного и ${M(1)} для нечётного.`, n % 2, { op: `parity_${op}`, args: [a, b] }); }),
-    ...[2, 3, 5, 9, 10].map(d => () => { const n = ri(100, 9000); return yes(`Делится ли ${M(n)} на ${M(d)}?`, n % d === 0, { op: "divisible", args: [n, d] }); }),
-    () => { const a = pick([2, 3, 5]), b = pick([9, 10]), n = ri(100, 9999); return yes(`Делится ли ${M(n)} одновременно на ${M(a)} и ${M(b)}?`, n % a === 0 && n % b === 0, { op: "divisible_all", args: [n, a, b] }); },
-    () => { const d = pick([3, 5, 9, 10]), l = ri(100, 300), h = l + 30; return Q(`Запишите по возрастанию все числа от ${M(l)} до ${M(h)} включительно, которые делятся на ${M(d)}.`, list(range(l, h).filter(n => n % d === 0)), { op: "multiples", args: [d, l, h] }, "integer_list"); },
-    () => { const n = ri(1000, 99999); return Q(`Найдите сумму цифр числа ${M(n)}, используемую при проверке делимости на ${M(3)} и ${M(9)}.`, [...String(n)].reduce((s, d) => s + Number(d), 0), { op: "digit_sum", args: [n] }); },
+    ...range(2, 10).map(d => () => { const divisible = pick([false, true]), n = d * ri(50, 900) + (divisible ? 0 : ri(1, d - 1)); return yes(`Используя признак делимости, определите: делится ли ${M(n)} на ${M(d)} без остатка?`, divisible, { op: "divisible", args: [n, d] }); }),
+    () => { const a = ri(2, 5), b = ri(6, 10), period = lcm(a, b), n = period * ri(10, 100) + pick([0, ri(1, period - 1)]); return yes(`Делится ли ${M(n)} одновременно на ${M(a)} и ${M(b)}?`, n % a === 0 && n % b === 0, { op: "divisible_all", args: [n, a, b] }); },
+    () => { const d = ri(2, 10), l = ri(100, 300), h = l + 30; return Q(`Используя признак делимости, запишите по возрастанию все числа от ${M(l)} до ${M(h)} включительно, которые делятся на ${M(d)}.`, list(range(l, h).filter(n => n % d === 0)), { op: "multiples", args: [d, l, h] }, "integer_list"); },
   ],
   4: [
     () => { const a = ri(12, 150), b = ri(12, 150); return Q(`Найдите ${M(`\\gcd(${a},${b})`)} — наибольший общий делитель.`, gcd(a, b), { op: "gcd", args: [a, b] }); },

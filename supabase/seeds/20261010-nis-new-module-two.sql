@@ -8,7 +8,7 @@ declare
   v_sort integer;
   v_title text;
   v_index integer := 0;
-  v_counts integer[] := array[6,8,12,5,6,6,7,11,13,5,5];
+  v_counts integer[] := array[6,8,11,5,6,6,7,11,13,5,5];
 begin
   select id into strict v_program from public.learning_programs
     where name='NIS new program · 5–6 классы' and is_active=true for update;
@@ -21,7 +21,7 @@ begin
   foreach v_title in array array[
     '2.01 Делители и кратные натуральных чисел',
     '2.02 Простые и составные числа. Разложение на простые множители',
-    '2.03 Чётность и признаки делимости',
+    '2.03 Признак делимости',
     '2.04 Наибольший общий делитель и взаимно простые числа',
     '2.05 Наименьшее общее кратное',
     '2.06 Деление с остатком',
