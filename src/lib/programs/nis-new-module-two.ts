@@ -138,6 +138,19 @@ const skills: Record<number, (() => GeneratedSection1Task)[]> = {
   ],
 };
 
+
+// Contexts require choosing GCD/LCM from the situation, without naming the operation.
+skills[4].push(() => { const a=ri(2,12)*ri(2,5),b=ri(2,12)*ri(2,5);return Q(`Есть ${M(a)} тетрадей и ${M(b)} карандашей. Их распределяют без остатка в одинаковые наборы (в каждом есть оба вида предметов). Какое наибольшее число наборов можно сделать?`,gcd(a,b),{op:"gcd",args:[a,b]}); });
+skills[4].push(() => { const a=ri(10,30),b=ri(10,30);return Q(`Ленты длиной ${M(a)} см и ${M(b)} см разрезают без остатков на одинаковые отрезки. Найдите наибольшую возможную длину отрезка в сантиметрах.`,gcd(a,b),{op:"gcd",args:[a,b]}); });
+skills[5].push(() => { const a=ri(3,12),b=ri(3,12);return Q(`Конфеты можно разложить без остатка как по ${M(a)}, так и по ${M(b)} штук. Какое наименьшее положительное количество конфет подходит?`,lcm(a,b),{op:"lcm",args:[a,b]}); });
+skills[5].push(() => { const a=ri(3,10),b=ri(3,10),c=ri(3,10);return Q(`В коробках помещается по ${M(a)}, ${M(b)} или ${M(c)} деталей. Найдите наименьшее положительное число деталей, которое заполняет целое число коробок каждого размера без остатка.`,lcm(lcm(a,b),c),{op:"lcm",args:[a,b,c]}); });
+for(const remainder of [false,true]) skills[6].push(() => { const d=ri(4,18),q=ri(3,20),r=remainder?ri(1,d-1):0,n=d*q+r;return Q(`Все ${M(n)} книг нужно разместить в коробках вместимостью не более ${M(d)} книг. Сколько коробок потребуется как минимум? Последняя коробка может быть неполной.`,q+Number(r>0),{op:"boxes",args:[n,d]}); });
+for(const d of [2,3,4,5,6,7,8,9,10]) skills[8].push(() => {
+  const prefix=ri(10,98),values=range(0,9).filter(x=>(prefix*10+x)%d===0);
+  // A ten-number block always contains a multiple of every divisor 2..10.
+  return Q(`Запишите все цифры ${M("x")} по возрастанию, для которых число ${M(`\\overline{${prefix}x}`)} делится на ${M(d)}. Цифра может быть нулём.`,list(values),{op:"last_digit_fill",args:[prefix,d]},"integer_list");
+});
+
 export const NIS_TWO_TEMPLATE_COUNTS = Object.fromEntries(Object.entries(skills).map(([key, value]) => [key, value.length]));
 export function isNisTwoGenerator(key: string) { return /^nis_new_s2_(?:[1-9]|1[01])_v2$/.test(key); }
 export function generateNisTwoTasks(key: string): GeneratedSection1Task[] {

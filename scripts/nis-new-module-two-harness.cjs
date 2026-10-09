@@ -24,6 +24,8 @@ function lastPower(base, exponent) {
 function select(values, mode) { return mode === 'count' ? values.length : mode === 'min' ? values[0] : mode === 'max' ? values.at(-1) : values.join(';'); }
 function oracle({op,args:a,mode}) {
   switch(op) {
+    case 'boxes': { let boxes=0; while(boxes*a[1]<a[0]) boxes++; return boxes; }
+    case 'last_digit_fill': return interval(0,9).filter(d=>Number(String(a[0])+d)%a[1]===0).join(';');
     case 'divisors': return divisors(a[0]).join(';');
     case 'multiples': return select(interval(a[1],a[2]).filter(n => n%a[0]===0),mode);
     case 'divisible': return Number(a[0]%a[1]===0);

@@ -149,6 +149,49 @@ const skills: Record<number, (() => GeneratedSection1Task)[]> = {
   ],
 };
 
+
+// Append-only expansion: existing template identifiers and saved attempts stay valid.
+const mixed = (w: number, f: Rat) => `(${w}${F(f)})`;
+for (const carry of [false, true]) skills[1].push(() => {
+  const d = ri(5, 12), a = ri(1, 4), b = ri(1, 4);
+  const x = R(carry ? d - 1 : 1, d), y = R(carry ? d - 2 : 2, d);
+  return Q(`Вычислите ${M(`${mixed(a,x)}+${mixed(b,y)}`)}. Ответ запишите смешанным числом.`, add(add(R(a+b),x),y), "mixed");
+});
+for (const borrow of [false, true]) skills[1].push(() => {
+  const d = ri(5, 12), b = ri(1, 4), a = b + ri(2, 5);
+  const x = R(borrow ? 1 : d-1,d), y = R(borrow ? d-1 : 1,d);
+  return Q(`Вычислите ${M(`${mixed(a,x)}-${mixed(b,y)}`)}. Ответ запишите смешанным числом.`, sub(add(R(a-b),x),y), "mixed");
+});
+skills[1].push(() => { const a=ri(5,12), b=ri(1,a-2), f=fraction(); return Q(`Вычислите ${M(`${a}-${mixed(b,f)}`)}. Ответ запишите смешанным числом.`,sub(R(a-b),f),"mixed"); });
+for (const op of ["\\cdot","\\div"]) for (const form of ["integer","fraction","mixed"]) skills[1].push(() => {
+  const w=ri(1,6), f=fraction(), a=add(R(w),f), v=ri(2,6), g=fraction();
+  const b=form==="integer"?R(v):form==="fraction"?g:add(R(v),g);
+  const rhs=form==="mixed"?mixed(v,g):F(b);
+  return Q(`Вычислите ${M(`${mixed(w,f)}${op}${rhs}`)}.`,op==="\\cdot"?mul(a,b):div(a,b),"number");
+});
+for (const op of ["+","-","\\cdot","\\div"]) skills[2].push(() => {
+  const a=mul(R(-1),fraction()), b=fraction();
+  return Q(`Вычислите ${M(`(${F(a)})${op}(${F(b)})`)}.`,op==="+"?add(a,b):op==="-"?sub(a,b):op==="\\cdot"?mul(a,b):div(a,b),"number");
+});
+for (const negativeBoth of [false,true]) skills[2].push(() => {
+  const w=ri(1,5),v=ri(1,5),f=fraction(),g=fraction(),a=mul(R(-1),add(R(w),f)),b=mul(R(negativeBoth?-1:1),add(R(v),g));
+  return Q(`Вычислите ${M(`(-${mixed(w,f)})\\div(${negativeBoth?"-":""}${mixed(v,g)})`)}.`,div(a,b),"number");
+});
+for (const reduced of [false,true]) skills[10].push(() => {
+  const w=ri(1,9), d=ri(3,12), n=ri(1,d-1), k=reduced?ri(2,5):1, a=add(R(w),R(n,d));
+  return Q(`Переведите ${M(`${w}\\frac{${n*k}}{${d*k}}`)} в несократимую неправильную дробь.`,a,"fraction",{conversion:"mixed_to_improper"});
+});
+for (const reduced of [false,true]) skills[10].push(() => {
+  const w=ri(1,9), d=ri(3,12), n=ri(1,d-1), k=reduced?ri(2,5):1, a=add(R(w),R(n,d));
+  return Q(`Переведите ${M(`\\frac{${(w*d+n)*k}}{${d*k}}`)} в смешанное число с несократимой дробной частью.`,a,"mixed",{conversion:"improper_to_mixed"});
+});
+skills[10].push(() => { const w=ri(2,15),d=ri(3,12);return Q(`Выделите целую часть из ${M(`\\frac{${w*d}}{${d}}`)}. Если дробной части нет, введите целое число.`,R(w),"integer",{conversion:"whole"}); });
+for (const op of ["+","-","\\div"]) skills[14].push(() => {
+  const w=ri(2,8),f=fraction(),v=ri(1,4),g=fraction(),c=R(ri(1,9),10),a=add(R(w),f),b=add(R(v),g);
+  const first=op==="+"?add(a,b):op==="-"?sub(a,b):div(a,b);
+  return Q(`Вычислите ${M(`(${mixed(w,f)}${op}${mixed(v,g)})\\cdot${D(c)}`)}.`,mul(first,c),"number");
+});
+
 export const NIS_NEW_TEMPLATE_COUNTS = Object.fromEntries(Object.entries(skills).map(([i, list]) => [i, list.length]));
 export function isNisNewGenerator(key: string) { return /^nis_new_s1_(?:[1-9]|1[0-4])_v2$/.test(key); }
 export function nisNewTemplates(skill: number): Template[] {

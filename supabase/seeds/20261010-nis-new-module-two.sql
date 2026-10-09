@@ -8,7 +8,7 @@ declare
   v_sort integer;
   v_title text;
   v_index integer := 0;
-  v_counts integer[] := array[6,8,11,5,6,6,7,11,13,5,5];
+  v_counts integer[] := array[6,8,11,7,8,8,7,20,13,5,5];
 begin
   select id into strict v_program from public.learning_programs
     where name='NIS new program · 5–6 классы' and is_active=true for update;
