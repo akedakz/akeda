@@ -2,6 +2,7 @@
 
 import { randomInt } from "node:crypto";
 import { generateSection1Tasks, isSection1Generator } from "./section1-skill-generators";
+import { generateNisNewTasks, isNisNewGenerator } from "./nis-new-module-one";
 
 type GcdLevel = {
   key: "BASIC" | "CORE" | "CHALLENGE";
@@ -118,6 +119,7 @@ export function generateGcdTasks(configValue: unknown): GeneratedSkillTask[] {
 
 
 export function generateSkillTasks(generatorKey: string, configValue: unknown): GeneratedSkillTask[] {
+  if (isNisNewGenerator(generatorKey)) return generateNisNewTasks(generatorKey);
   if (generatorKey === "gcd_pair_v1") return generateGcdTasks(configValue);
   if (isSection1Generator(generatorKey)) return generateSection1Tasks(generatorKey, configValue);
   throw new Error("Неизвестный тип генератора навыка.");

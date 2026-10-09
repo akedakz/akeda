@@ -1,11 +1,14 @@
 "use client";
 
+import MathText from "@/components/tests/math-text";
+import SkillAnswerInput, { skillAnswerComplete } from "@/components/students/skill-answer-input";
+import type { SkillAnswerMeta } from "@/lib/programs/skill-answer-policy";
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { startSkillGeneratorPreview, submitSkillGeneratorPreview } from "./actions";
 import styles from "./skill-preview.module.css";
 
-type Task = {
+type Task = SkillAnswerMeta & {
   id: string;
   position: number;
   prompt: string;
@@ -87,7 +90,7 @@ export default function SkillGeneratorPreview({
     </section>
 
     <div className={styles.toolbar}>
-      <button onClick={start} disabled={pending}>{tasks.length ? "Сгенерировать новые 10" : "Сгенерировать 10 задач"}</button>
+      <button onClick={start} disabled={pending}>{tasks.length ? "Сгенерировать новый набор" : "Сгенерировать задачи"}</button>
       {notice && <p data-success={results.length > 0 || undefined}>{notice}</p>}
     </div>
 
@@ -96,20 +99,16 @@ export default function SkillGeneratorPreview({
         const checked = resultMap.get(task.id);
         return <article key={task.id} data-correct={checked?.correct === true || undefined} data-wrong={checked?.correct === false || undefined}>
           <div className={styles.taskHead}><span>№ {task.position}</span><small>{labels[task.difficulty]}</small></div>
-          <strong>{task.prompt}</strong>
-          <label>Ответ
-            <input
-              inputMode="text"
-              value={answers[task.id] ?? ""}
+          <strong><MathText>{task.prompt}</MathText></strong>
+          <div>Ответ
+            <SkillAnswerInput {...task} id={task.id} value={answers[task.id] ?? ""}
               disabled={pending || results.length > 0}
-              onChange={(event) => setAnswers((current) => ({ ...current, [task.id]: event.target.value }))}
-              placeholder="Например: 12, 3,5 или 5/8"
-            />
-          </label>
+              onChange={value => setAnswers(current => ({ ...current, [task.id]: value }))} />
+          </div>
           {checked && <p>{checked.correct ? "Верно ✓" : `Неверно. Правильный ответ: ${checked.expectedAnswer}`}</p>}
         </article>;
       })}
-      {!results.length && <button className={styles.check} onClick={submit} disabled={pending || tasks.some((task) => !(answers[task.id] ?? "").trim())}>{pending ? "Проверяем…" : "Проверить 10 ответов"}</button>}
+      {!results.length && <button className={styles.check} onClick={submit} disabled={pending || tasks.some((task) => !skillAnswerComplete(answers[task.id] ?? "", task.answerKind))}>{pending ? "Проверяем…" : `Проверить ${tasks.length} ответов`}</button>}
     </section>}
   </main>;
 }

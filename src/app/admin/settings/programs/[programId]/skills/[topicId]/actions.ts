@@ -2,6 +2,7 @@
 
 import { getCurrentProfile } from "@/lib/auth/get-current-profile";
 import { generateSkillTasks } from "@/lib/programs/skill-generators.server";
+import { answerMeta, normalizeStrictSkillAnswer, type SkillAnswerMeta } from "@/lib/programs/skill-answer-policy";
 import { normalizeNumericAnswer } from "@/lib/programs/section1-skill-generators";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -9,7 +10,7 @@ type StartResult = {
   ok: boolean;
   message: string;
   attemptId?: string;
-  tasks?: { id: string; position: number; prompt: string; difficulty: "BASIC" | "CORE" | "CHALLENGE" }[];
+  tasks?: { id: string; position: number; prompt: string; difficulty: "BASIC" | "CORE" | "CHALLENGE"; answerKind: SkillAnswerMeta["answerKind"]; answerHint: string }[];
 };
 
 type SubmitResult = {
@@ -88,6 +89,7 @@ export async function startSkillGeneratorPreview(programId: string, topicId: str
       position: task.position,
       prompt: task.prompt,
       difficulty: task.difficulty as "BASIC" | "CORE" | "CHALLENGE",
+      ...answerMeta(generated[task.position - 1].parameters, generated[task.position - 1].expectedAnswer),
     })),
   };
 }
@@ -118,19 +120,21 @@ export async function submitSkillGeneratorPreview(
     return { ok: false, message: "Не удалось загрузить задания попытки." };
   }
 
+  if (answers.length > 50 || answers.some(item => !item || !uuid.test(item.taskId) || typeof item.answer !== "string" || item.answer.length > 100)) return { ok: false, message: "Некорректный ответ." };
   const answerMap = new Map(answers.map((item) => [item.taskId, item.answer.trim()]));
-  if (answerMap.size !== tasks.data.length || tasks.data.some((task) => !answerMap.has(task.id))) {
+  if (answers.length !== tasks.data.length || answerMap.size !== tasks.data.length || tasks.data.some((task) => !answerMap.has(task.id))) {
     return { ok: false, message: "Ответьте на все задания." };
   }
 
   const normalized = tasks.data.map((task) => {
     const raw = answerMap.get(task.id) ?? "";
-    const submitted = normalizeNumericAnswer(raw);
-    if (!submitted) return null;
     const params = task.parameters && typeof task.parameters === "object"
       ? task.parameters as Record<string, unknown>
       : {};
+    const submitted = params.answer_policy_version === 2 ? normalizeStrictSkillAnswer(raw, params) : normalizeNumericAnswer(raw);
+    if (!submitted) return null;
     return {
+      raw,
       taskId: task.id,
       submitted,
       expected: task.expected_answer,
@@ -144,10 +148,22 @@ export async function submitSkillGeneratorPreview(
   }
 
   const checked = normalized as NonNullable<(typeof normalized)[number]>[];
+  if (tasks.data.every(task => (task.parameters as Record<string, unknown>).answer_policy_version === 2)) {
+    const result = await ctx.admin.rpc("submit_nis_new_skill_attempt_atomic", {
+      p_student_id: ctx.profileId, p_attempt_id: attemptId,
+      p_answers: Object.fromEntries(checked.map(item => [item.taskId, { value: item.submitted, raw: item.raw }])),
+    });
+    const data = result.data as { status?: string; score: number; total: number; mastered: boolean;
+      results: { task_id: string; correct: boolean; expected_answer: string }[] } | null;
+    if (result.error || data?.status !== "completed") return { ok: false, message: "Не удалось завершить попытку. Возможно, она уже проверена." };
+    return { ok: true, message: `${data.score}/${data.total} — ${data.mastered ? "навык освоен" : "пока не освоен"}.`,
+      score: data.score, total: data.total, mastered: data.mastered,
+      results: data.results.map(item => ({ taskId: item.task_id, correct: item.correct, expectedAnswer: item.expected_answer })) };
+  }
   const now = new Date().toISOString();
   const updates = await Promise.all(checked.map((item) =>
     ctx.admin.from("learning_skill_practice_tasks").update({
-      submitted_answer: item.submitted,
+      submitted_answer: item.raw,
       is_correct: item.correct,
       answered_at: now,
     }).eq("id", item.taskId).eq("attempt_id", attemptId).is("answered_at", null).select("id").maybeSingle()
@@ -168,7 +184,7 @@ export async function submitSkillGeneratorPreview(
 
   return {
     ok: true,
-    message: score === checked.length ? "10/10 — навык освоен." : `${score}/${checked.length} — пока не освоен.`,
+    message: score === checked.length ? `${score}/${checked.length} — навык освоен.` : `${score}/${checked.length} — пока не освоен.`,
     score,
     total: checked.length,
     mastered: score === checked.length,

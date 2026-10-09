@@ -2,6 +2,7 @@
 
 import { getCurrentProfile } from "@/lib/auth/get-current-profile";
 import { generateSkillTasks } from "@/lib/programs/skill-generators.server";
+import { answerMeta, normalizeStrictSkillAnswer, type SkillAnswerMeta } from "@/lib/programs/skill-answer-policy";
 import { normalizeNumericAnswer } from "@/lib/programs/section1-skill-generators";
 import { loadStudentSkillAccess } from "@/lib/programs/student-skill-practice";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -10,7 +11,7 @@ type StartResult = {
   ok: boolean;
   message: string;
   attemptId?: string;
-  tasks?: { id: string; position: number; prompt: string; difficulty: "BASIC" | "CORE" | "CHALLENGE"; answerKind: "integer" | "decimal" | "fraction" | "mixed" }[];
+  tasks?: { id: string; position: number; prompt: string; difficulty: "BASIC" | "CORE" | "CHALLENGE"; answerKind: SkillAnswerMeta["answerKind"]; answerHint: string }[];
 };
 
 type SubmitResult = {
@@ -23,23 +24,6 @@ type SubmitResult = {
 };
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function answerKindFor(task: { expectedAnswer: string; parameters: Record<string, string | number | boolean> }) {
-  const display = typeof task.parameters.answer_display === "string" ? task.parameters.answer_display.trim() : "";
-
-  // The input UI must follow the format the task asks the student to enter,
-  // not the canonical exact value used internally for checking.
-  if (display) {
-    if (/^-?\d+\s+\d+\/\d+$/.test(display)) return "mixed" as const;
-    if (display.includes("/")) return "fraction" as const;
-    if (display.includes(",") || display.includes(".")) return "decimal" as const;
-    return "integer" as const;
-  }
-
-  // Fallback for older generators without answer_display metadata.
-  if (task.expectedAnswer.includes("/")) return "fraction" as const;
-  return "integer" as const;
-}
 
 async function student() {
   const current = await getCurrentProfile();
@@ -87,14 +71,14 @@ export async function startStudentSkillAttempt(topicId: string): Promise<StartRe
 
   return {
     ok: true,
-    message: "10 задач готовы.",
+    message: `${generated.length} задач готовы.`,
     attemptId: attempt.data.id,
     tasks: (inserted.data ?? []).map((task) => ({
       id: task.id,
       position: task.position,
       prompt: task.prompt,
       difficulty: task.difficulty as "BASIC" | "CORE" | "CHALLENGE",
-      answerKind: answerKindFor(generated[task.position - 1]),
+      ...answerMeta(generated[task.position - 1].parameters, generated[task.position - 1].expectedAnswer),
     })),
   };
 }
@@ -104,16 +88,31 @@ export async function submitStudentSkillAttempt(attemptId: string, answers: { ta
   if (!profile) return { ok: false, message: "Недостаточно прав." };
   if (!uuid.test(attemptId) || !Array.isArray(answers)) return { ok: false, message: "Некорректная попытка." };
 
-  const answerObject: Record<string, string> = {};
-  for (const item of answers) {
-    if (!uuid.test(item.taskId)) return { ok: false, message: "Некорректный ответ." };
-    const normalized = normalizeNumericAnswer(item.answer);
-    if (!normalized) return { ok: false, message: "Введите число, десятичную дробь или обычную дробь." };
-    answerObject[item.taskId] = normalized;
+  if (answers.length > 50 || answers.some(item => !item || !uuid.test(item.taskId) || typeof item.answer !== "string" || item.answer.length > 100)) {
+    return { ok: false, message: "Некорректный ответ." };
+  }
+  const admin = createAdminClient();
+  const attempt = await admin.from("learning_skill_practice_attempts").select("id,total_questions,status")
+    .eq("id", attemptId).eq("profile_id", profile.id).maybeSingle();
+  if (attempt.error || !attempt.data) return { ok: false, message: "Попытка не найдена." };
+  if (attempt.data.status !== "OPEN") return { ok: false, message: "Эта попытка уже завершена." };
+  const tasks = await admin.from("learning_skill_practice_tasks").select("id,parameters").eq("attempt_id", attemptId);
+  if (tasks.error || !tasks.data || tasks.data.length !== attempt.data.total_questions) return { ok: false, message: "Не удалось загрузить задания." };
+  const supplied = new Map(answers.map(item => [item.taskId, item.answer]));
+  if (answers.length !== tasks.data.length || supplied.size !== tasks.data.length || tasks.data.some(task => !supplied.has(task.id))) {
+    return { ok: false, message: "Ответьте на все задания." };
+  }
+  const answerObject: Record<string, string | { value: string; raw: string }> = {};
+  for (const task of tasks.data) {
+    const raw = supplied.get(task.id)!;
+    const params = task.parameters as Record<string, unknown>;
+    const strict = params.answer_policy_version === 2;
+    const value = strict ? normalizeStrictSkillAnswer(raw, params) : normalizeNumericAnswer(raw);
+    if (!value) return { ok: false, message: "Заполните ответы в указанном формате." };
+    answerObject[task.id] = strict ? { value, raw: raw.trim() } : value;
   }
 
-  const admin = createAdminClient();
-  const result = await admin.rpc("submit_learning_skill_attempt_atomic", {
+  const result = await admin.rpc(tasks.data.every(task => (task.parameters as Record<string, unknown>).answer_policy_version === 2) ? "submit_nis_new_skill_attempt_atomic" : "submit_learning_skill_attempt_atomic", {
     p_student_id: profile.id,
     p_attempt_id: attemptId,
     p_answers: answerObject,
