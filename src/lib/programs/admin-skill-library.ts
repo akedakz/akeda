@@ -5,7 +5,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export type AdminSkillProgramSummary = {
   id: string;
   name: string;
-  skillCount: number;
+  topicCount: number;
+  generatorCount: number;
 };
 
 export type AdminSkillProgramDetail = {
@@ -14,39 +15,38 @@ export type AdminSkillProgramDetail = {
   sections: {
     id: string;
     title: string;
-    skills: { id: string; title: string }[];
+    skills: { id: string; title: string; hasGenerator: boolean }[];
   }[];
-  skillCount: number;
+  topicCount: number;
+  generatorCount: number;
 };
 
 export async function loadAdminSkillPrograms(): Promise<AdminSkillProgramSummary[]> {
   const admin = createAdminClient();
-  const [programs, generators] = await Promise.all([
+  const [programs, topics, generators] = await Promise.all([
     admin.from("learning_programs").select("id,name").eq("is_active", true).order("name"),
+    admin.from("learning_program_topics").select("id,program_id"),
     admin.from("learning_program_skill_generators").select("program_topic_id").eq("is_active", true),
   ]);
-  if (programs.error || generators.error) throw new Error("Не удалось загрузить программы навыков.");
+  if (programs.error || topics.error || generators.error) throw new Error("Не удалось загрузить программы навыков.");
 
-  const topicIds = [...new Set((generators.data ?? []).map((item) => item.program_topic_id))];
-  if (!topicIds.length) return [];
+  const activeGeneratorIds = new Set((generators.data ?? []).map((item) => item.program_topic_id));
+  const topicCounts = new Map<string, number>();
+  const generatorCounts = new Map<string, number>();
 
-  const topics = await admin.from("learning_program_topics")
-    .select("id,program_id")
-    .in("id", topicIds);
-  if (topics.error) throw new Error("Не удалось загрузить навыки программ.");
-
-  const counts = new Map<string, number>();
   for (const topic of topics.data ?? []) {
-    counts.set(topic.program_id, (counts.get(topic.program_id) ?? 0) + 1);
+    topicCounts.set(topic.program_id, (topicCounts.get(topic.program_id) ?? 0) + 1);
+    if (activeGeneratorIds.has(topic.id)) {
+      generatorCounts.set(topic.program_id, (generatorCounts.get(topic.program_id) ?? 0) + 1);
+    }
   }
 
-  return (programs.data ?? [])
-    .filter((program) => (counts.get(program.id) ?? 0) > 0)
-    .map((program) => ({
-      id: program.id,
-      name: program.name,
-      skillCount: counts.get(program.id) ?? 0,
-    }));
+  return (programs.data ?? []).map((program) => ({
+    id: program.id,
+    name: program.name,
+    topicCount: topicCounts.get(program.id) ?? 0,
+    generatorCount: generatorCounts.get(program.id) ?? 0,
+  }));
 }
 
 export async function loadAdminSkillProgram(programId: string): Promise<AdminSkillProgramDetail | null> {
@@ -62,7 +62,7 @@ export async function loadAdminSkillProgram(programId: string): Promise<AdminSki
   if (!program.data) return null;
 
   const topicIds = (topics.data ?? []).map((topic) => topic.id);
-  if (!topicIds.length) return { ...program.data, sections: [], skillCount: 0 };
+  if (!topicIds.length) return { ...program.data, sections: [], topicCount: 0, generatorCount: 0 };
 
   const generators = await admin.from("learning_program_skill_generators")
     .select("program_topic_id")
@@ -75,13 +75,14 @@ export async function loadAdminSkillProgram(programId: string): Promise<AdminSki
     id: section.id,
     title: section.title,
     skills: (topics.data ?? [])
-      .filter((topic) => topic.section_id === section.id && activeIds.has(topic.id))
-      .map((topic) => ({ id: topic.id, title: topic.title })),
+      .filter((topic) => topic.section_id === section.id)
+      .map((topic) => ({ id: topic.id, title: topic.title, hasGenerator: activeIds.has(topic.id) })),
   })).filter((section) => section.skills.length > 0);
 
   return {
     ...program.data,
     sections: grouped,
-    skillCount: grouped.reduce((count, section) => count + section.skills.length, 0),
+    topicCount: (topics.data ?? []).length,
+    generatorCount: (topics.data ?? []).filter((topic) => activeIds.has(topic.id)).length,
   };
 }
