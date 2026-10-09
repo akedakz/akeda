@@ -3,8 +3,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { parseGcdGeneratorConfig } from "@/lib/programs/skill-generators.server";
 import SkillGeneratorPreview from "./skill-generator-preview";
 
-export default async function SkillPreviewPage({ params }: { params: Promise<{ programId: string; topicId: string }> }) {
+export default async function SkillPreviewPage({ params, searchParams }: { params: Promise<{ programId: string; topicId: string }>; searchParams: Promise<{ from?: string }> }) {
   const { programId, topicId } = await params;
+  const { from } = await searchParams;
   const admin = createAdminClient();
   const [program, topic, generator] = await Promise.all([
     admin.from("learning_programs").select("id,name").eq("id", programId).eq("is_active", true).maybeSingle(),
@@ -30,7 +31,7 @@ export default async function SkillPreviewPage({ params }: { params: Promise<{ p
     topicId={topicId}
     programName={program.data.name}
     topicTitle={topic.data.title}
-    backHref={`/admin/settings/programs/${programId}`}
+    backHref={from === "skills" ? `/admin/trainers/skills/${programId}` : `/admin/settings/programs/${programId}`}
     rules={rules}
   />;
 }
