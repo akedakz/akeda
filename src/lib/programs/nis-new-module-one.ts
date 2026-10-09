@@ -8,6 +8,8 @@ const D = (r: Rat, scale = 0) => displayDecimal(r, scale);
 const F = (r: Rat) => r.d === BigInt(1) ? String(r.n) : `\\frac{${r.n}}{${r.d}}`;
 const M = (expr: string) => `$${expr.replace(/(\d),(\d)/g, "$1{,}$2")}$`;
 const hints: Record<SkillAnswerKind, string> = {
+  integer_list: "Введите целые числа через точку с запятой.",
+  factorization: "Введите произведение простых множителей, например 2^3 * 3.",
   integer: "Введите целое число.",
   decimal: "Введите десятичную дробь с запятой или точкой. Обыкновенная дробь не принимается.",
   fraction: "Введите несократимую обыкновенную дробь a/b. Десятичная запись не принимается.",

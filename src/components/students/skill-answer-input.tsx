@@ -18,7 +18,7 @@ export default function SkillAnswerInput({ answerKind, answerHint, value, onChan
       <span className={styles.bar} aria-hidden="true" />
     </div> : <input id={id} aria-label="Ответ" aria-describedby={hintId} value={value} disabled={disabled} maxLength={100}
       inputMode={answerKind === "decimal" ? "decimal" : "text"} onChange={event => onChange(event.target.value)}
-      placeholder={answerKind === "fraction" ? "Например: 4/5" : answerKind === "sequence" ? "1; 2; 3" : answerKind === "inequality" ? "1 < 2 < 3" : answerKind === "power" ? "3^4" : answerKind === "decimal" ? "Например: 0,4" : "Введите ответ"} />}
+      placeholder={answerKind === "fraction" ? "Например: 4/5" : answerKind === "sequence" || answerKind === "integer_list" ? "1; 2; 3" : answerKind === "factorization" ? "2^3 * 3" : answerKind === "inequality" ? "1 < 2 < 3" : answerKind === "power" ? "3^4" : answerKind === "decimal" ? "Например: 0,4" : "Введите ответ"} />}
     {answerHint && <small id={hintId}>{answerHint}</small>}
   </div>;
 }
