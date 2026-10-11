@@ -21,7 +21,7 @@ const canonical = ([n, d]) => d === 1n ? String(n) : `${n}/${d}`;
 const plus = (a, b) => r(a[0] * b[1] + b[0] * a[1], a[1] * b[1]);
 const times = (a, b) => r(a[0] * b[0], a[1] * b[1]);
 function evalMath(latex) {
-  const source = latex.replaceAll('{,}', '.').replace(/(\d)(\\frac)/g, '$1+$2')
+  const source = latex.replaceAll('{,}', '.').replaceAll(',', '.').replace(/(\d)(\\frac)/g, '$1+$2')
     .replace(/\\frac\{(-?\d+)\}\{(\d+)\}/g, '($1/$2)').replaceAll('\\cdot', '*').replaceAll('\\div', '/')
     .replaceAll('[', '(').replaceAll(']', ')').replace(/[{}]/g, '').replace(/\s/g, '');
   const tokens = source.match(/\d+(?:\.\d+)?|[()+\-*/^|]/g) || [];
@@ -68,7 +68,8 @@ let generated = 0, independent = 0;
 const seen = new Map();
 for (let round = 0; round < 100; round++) for (let skill = 1; skill <= 14; skill++) {
   const tasks = generateNisNewTasks(`nis_new_s1_${skill}_v2`);
-  assert.equal(tasks.length, Math.max(10, NIS_NEW_TEMPLATE_COUNTS[skill]));
+  assert.equal(tasks.length, Math.max(12, NIS_NEW_TEMPLATE_COUNTS[skill]));
+  assert.ok(tasks.length <= (skill === 1 ? 31 : 20));
   assert.equal(new Set(tasks.map(t => t.prompt)).size, tasks.length);
   assert.equal(new Set(tasks.map(t => t.parameters.template)).size, nisNewTemplates(skill).length);
   for (const t of tasks) {
@@ -82,7 +83,10 @@ for (let round = 0; round < 100; round++) for (let skill = 1; skill <= 14; skill
     const key = t.parameters.template;
     if (!seen.has(key)) seen.set(key, new Set()); seen.get(key).add(t.prompt);
     let expected;
-    if (t.prompt.startsWith('Вычислите') || skill === 10 || (skill === 8 && subtype === 9)) {
+    if (t.parameters.comparison_left) {
+      const a=evalMath(t.parameters.comparison_left).split('/').map(Number),b=evalMath(t.parameters.comparison_right).split('/').map(Number);
+      expected=String(Math.sign(a[0]*(b[1]||1)-b[0]*(a[1]||1)));
+    } else if (t.prompt.startsWith('Вычислите') || skill === 10 || (skill === 8 && subtype === 9)) {
       expected = evalMath(math[0]);
     } else if (t.prompt.includes('Найдите') && math.some(x => x.includes('='))) {
       const equation = math.find(x => x.includes('=')).replace(/\b[xn]\b/g, `(${t.expectedAnswer})`);
@@ -97,7 +101,7 @@ for (let round = 0; round < 100; round++) for (let skill = 1; skill <= 14; skill
       expected = canonical(plus(integer, plus(nonperiod, period)));
     } else if (skill === 13) {
       const value = Number(math[0].replaceAll('{,}', '.'));
-      const factor = subtype <= 3 ? 10 ** -subtype : subtype <= 6 ? 10 ** (subtype - 4) : subtype === 7 ? 10 : 100;
+      const factor = t.parameters.rounding_factor || (subtype <= 3 ? 10 ** -subtype : subtype <= 6 ? 10 ** (subtype - 4) : subtype === 7 ? 10 : 100);
       const got = evalMath(t.expectedAnswer).split('/').map(Number); const actual = got[0] / (got[1] || 1);
       assert.ok(Math.abs(actual - Math.round((value + Number.EPSILON * value) * factor) / factor) < 1e-8, t.prompt); independent++;
     }

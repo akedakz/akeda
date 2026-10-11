@@ -24,6 +24,9 @@ function lastPower(base, exponent) {
 function select(values, mode) { return mode === 'count' ? values.length : mode === 'min' ? values[0] : mode === 'max' ? values.at(-1) : values.join(';'); }
 function oracle({op,args:a,mode}) {
   switch(op) {
+    case 'exclusive_multiples': return interval(a[0],a[1]).filter(n=>n%a[2]===0&&n%a[3]!==0).length;
+    case 'prime_divisor_count': return divisors(a[0]).filter(prime).length;
+    case 'division_divisor': { const d=(a[0]-a[2])/a[1]; assert.equal(d,Math.floor(d)); assert.ok(a[2]<d); return d; }
     case 'boxes': { let boxes=0; while(boxes*a[1]<a[0]) boxes++; return boxes; }
     case 'last_digit_fill': return interval(0,9).filter(d=>Number(String(a[0])+d)%a[1]===0).join(';');
     case 'divisors': return divisors(a[0]).join(';');
@@ -83,12 +86,13 @@ const variants=new Map();
 const divisibilityOutcomes=new Map();
 for(let round=0;round<200;round++) for(let skill=1;skill<=11;skill++) {
   const tasks=generateNisTwoTasks(`nis_new_s2_${skill}_v2`);
-  assert.equal(tasks.length,Math.max(10,NIS_TWO_TEMPLATE_COUNTS[skill]));
+  assert.equal(tasks.length,Math.max(12,NIS_TWO_TEMPLATE_COUNTS[skill]));
+  assert.ok(tasks.length<=20);
   assert.equal(new Set(tasks.map(t=>t.parameters.template)).size,NIS_TWO_TEMPLATE_COUNTS[skill]);
   assert.equal(new Set(tasks.map(t=>t.prompt)).size,tasks.length);
   if(skill===3) {
     const checks=tasks.map(t=>JSON.parse(t.parameters.check_case));
-    assert.deepEqual(checks.filter(c=>c.op==='divisible').map(c=>c.args[1]).sort((a,b)=>a-b),interval(2,10));
+    assert.deepEqual([...new Set(checks.filter(c=>c.op==='divisible').map(c=>c.args[1]))].sort((a,b)=>a-b),interval(2,10));
     assert.ok(checks.every(c=>['divisible','divisible_all','multiples'].includes(c.op)));
     for(const c of checks.filter(c=>c.op==='divisible')) {
       if(!divisibilityOutcomes.has(c.args[1])) divisibilityOutcomes.set(c.args[1],new Set());

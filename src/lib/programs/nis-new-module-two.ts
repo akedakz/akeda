@@ -43,8 +43,8 @@ function residueTask(two: boolean, mode: string, narrow = false) {
   const h = narrow ? l + period - 1 : l + period * ri(2, 4);
   const r1 = target % a, r2 = target % b;
   const values = range(l, h).filter(n => n % a === r1 && (!two || n % b === r2));
-  const requirement = mode === "min" ? "Найдите наименьшее" : mode === "max" ? "Найдите наибольшее" : "Запишите все";
-  return Q(`${requirement} ${mode === "all" ? "натуральные числа (по возрастанию)" : "натуральное число"} от ${M(l)} до ${M(h)} включительно, ${mode === "all" ? "которые" : "которое"} при делении на ${M(a)} ${mode === "all" ? "дают" : "даёт"} остаток ${M(r1)}${two ? `, а при делении на ${M(b)} — остаток ${M(r2)}` : ""}.`, choose(values, mode), { op: "residues", args: [l, h, a, r1, two ? b : 1, two ? r2 : 0], mode }, mode === "all" ? "integer_list" : "integer");
+  const requirement = mode === "count" ? "Сколько существует" : mode === "min" ? "Найдите наименьшее" : mode === "max" ? "Найдите наибольшее" : "Запишите все";
+  return Q(`${requirement} ${mode === "count" ? "натуральных чисел" : mode === "all" ? "натуральные числа (по возрастанию)" : "натуральное число"} от ${M(l)} до ${M(h)} включительно, ${mode === "all" || mode === "count" ? "которые" : "которое"} при делении на ${M(a)} ${mode === "all" || mode === "count" ? "дают" : "даёт"} остаток ${M(r1)}${two ? `, а при делении на ${M(b)} — остаток ${M(r2)}` : ""}.`, choose(values, mode), { op: "residues", args: [l, h, a, r1, two ? b : 1, two ? r2 : 0], mode }, mode === "all" ? "integer_list" : "integer");
 }
 function digitTask(ds: number[], mode = "all", leading = false) {
   // Enumerate the full digit domain, so all answers, counts and extrema agree.
@@ -151,20 +151,43 @@ for(const d of [2,3,4,5,6,7,8,9,10]) skills[8].push(() => {
   return Q(`Запишите все цифры ${M("x")} по возрастанию, для которых число ${M(`\\overline{${prefix}x}`)} делится на ${M(d)}. Цифра может быть нулём.`,list(values),{op:"last_digit_fill",args:[prefix,d]},"integer_list");
 });
 
+
+const practiceStart = Object.fromEntries(Object.entries(skills).map(([key, value])=>[key,value.length]));
+skills[1].push(() => { const d=ri(2,9),l=ri(10,30),h=l+ri(20,50);return Q(`Сколько чисел от ${M(l)} до ${M(h)} включительно кратны ${M(d)}, но не кратны ${M(2*d)}?`,range(l,h).filter(n=>n%d===0&&n%(2*d)!==0).length,{op:"exclusive_multiples",args:[l,h,d,2*d]}); });
+skills[1].push(() => { const d=ri(3,15),l=ri(1,20),h=l+40;const values=range(l+1,h-1).filter(n=>n%d===0);return Q(`Запишите кратные ${M(d)}, которые строго больше ${M(l)} и строго меньше ${M(h)}, по возрастанию.`,list(values),{op:"multiples",args:[d,l+1,h-1]},"integer_list"); });
+skills[2].push(() => { const p=pick(primes.slice(0,6));return yes(`Является ли квадрат ${M(`${p}^{2}`)} простым числом?`,false,{op:"prime",args:[p*p]}); });
+skills[2].push(() => { const n=2**ri(1,4)*3**ri(1,3)*pick([1,5,7]);return Q(`Сколько различных простых делителей у числа ${M(n)}? Каждый делитель учитывайте один раз.`,factorization(n).length,{op:"prime_divisor_count",args:[n]}); });
+skills[4].push(() => { const n=ri(3,25),b=n*ri(2,8);return Q(`Найдите НОД чисел ${M(n)} и ${M(b)}.`,n,{op:"gcd",args:[n,b]}); });
+skills[4].push(() => { const n=ri(10,50);return Q(`Найдите НОД двух соседних натуральных чисел ${M(n)} и ${M(n+1)}.`,1,{op:"gcd",args:[n,n+1]}); });
+skills[5].push(() => { const n=ri(3,20),b=n*ri(2,8);return Q(`Найдите НОК чисел ${M(n)} и ${M(b)}. Одно число кратно другому.`,b,{op:"lcm",args:[n,b]}); });
+skills[5].push(() => { const n=ri(3,12),b=n+1;return Q(`Красные флажки ставят через ${M(n)} метров, синие — через ${M(b)} метров. На старте стоят оба флажка. На каком наименьшем положительном расстоянии от старта снова будут оба? Введите метры.`,lcm(n,b),{op:"lcm",args:[n,b]}); });
+skills[6].push(() => { const d=ri(5,20),n=ri(1,d-1);return Q(`Разделите ${M(n)} на ${M(d)} с остатком. Введите неполное частное и остаток через точку с запятой.`, `0;${n}`,{op:"division",args:[n,d]},"integer_list"); });
+skills[6].push(() => { const q=ri(2,15),d=ri(3,15),rem=ri(1,d-1),n=q*d+rem;return Q(`При делении ${M(n)} на неизвестный делитель получилось неполное частное ${M(q)} и остаток ${M(rem)}. Найдите делитель.`,d,{op:"division_divisor",args:[n,q,rem]}); });
+skills[7].push(() => residueTask(false,"count"));
+skills[7].push(() => residueTask(true,"count"));
+skills[10].push(() => { const a=ri(2,50)*10+5,b=ri(2,50)*10+2;return Q(`Найдите последнюю цифру ${M(`${a}\\cdot${b}`)}.`,0,{op:"last_product",args:[a,b]}); });
+skills[10].push(() => { const a=ri(20,80),b=ri(2,15),c=ri(2,15);return Q(`Найдите последнюю цифру ${M(`${a}\\cdot(${b}+${c})`)}.`,a*(b+c)%10,{op:"last_product",args:[a,b+c]}); });
+skills[11].push(() => { const p=pick(primes);return Q(`Сколько натуральных делителей имеет простое число ${M(p)}?`,2,{op:"divisor_count",args:[p]}); });
+skills[11].push(() => { const p=pick(primes.slice(0,6)),q=pick(primes.filter(n=>n!==p));return Q(`Сколько натуральных делителей у ${M(`${p}\\cdot${q}`)}, где оба множителя простые и различные?`,4,{op:"divisor_count",args:[p*q]}); });
+for(const [key,start] of Object.entries(practiceStart)) {
+  const skill=Number(key);
+  skills[skill]=skills[skill].map((make,index)=>index<start?make:()=>{const task=make();return {...task,parameters:{...task.parameters,practice_level:"CORE"}};});
+}
+
 export const NIS_TWO_TEMPLATE_COUNTS = Object.fromEntries(Object.entries(skills).map(([key, value]) => [key, value.length]));
 export function isNisTwoGenerator(key: string) { return /^nis_new_s2_(?:[1-9]|1[01])_v2$/.test(key); }
 export function generateNisTwoTasks(key: string): GeneratedSection1Task[] {
   if (!isNisTwoGenerator(key)) throw new Error("Unknown module two generator");
   const skill = Number(key.split("_")[3]);
   const templates = skills[skill].map((make, index) => ({ make, index }));
-  const chosen = [...templates]; while (chosen.length < 10) chosen.push(pick(templates));
+  const chosen = [...templates]; while (chosen.length < 12) chosen.push(pick(templates));
   const prompts = new Set<string>();
   return shuffle(chosen.map(({ make, index }) => {
     for (let attempt = 0; attempt < 150; attempt++) {
       const t = make();
       if (prompts.has(t.prompt)) continue;
       prompts.add(t.prompt);
-      return { ...t, difficulty: index === 0 ? "BASIC" : index === templates.length - 1 ? "CHALLENGE" : "CORE", parameters: { ...t.parameters, template: `nis-new-2.${skill}-${index + 1}` } };
+      return { ...t, difficulty: t.parameters.practice_level === "CORE" ? "CORE" : index === 0 ? "BASIC" : index === templates.length - 1 ? "CHALLENGE" : "CORE", parameters: { ...t.parameters, template: `nis-new-2.${skill}-${index + 1}` } };
     }
     throw new Error(`Cannot generate unique task for 2.${skill}-${index + 1}`);
   }));

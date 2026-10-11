@@ -192,13 +192,47 @@ for (const op of ["+","-","\\div"]) skills[14].push(() => {
   return Q(`Вычислите ${M(`(${mixed(w,f)}${op}${mixed(v,g)})\\cdot${D(c)}`)}.`,mul(first,c),"number");
 });
 
+
+// More practice within the existing syllabus; append IDs rather than replacing saved subtypes.
+const practiceStart = Object.fromEntries(Object.entries(skills).map(([key, value]) => [key, value.length]));
+for (const op of ["+", "-"]) skills[2].push(() => {
+  const a = R(-ri(1, 99), 10), b = R(ri(1, 99), 10);
+  return Q(`Вычислите ${M(`(${D(a)})${op}${D(b)}`)}. Запишите десятичной дробью.`, op === "+" ? add(a,b) : sub(a,b), "decimal");
+});
+skills[3].push(() => { const a = mul(R(-1),fraction()); return Q(`Вычислите ${M(`|${F(a)}|`)}.`,mul(R(-1),a),"fraction"); });
+skills[3].push(() => { const a = ri(-20,-1), b = ri(1,20); return I(`|${a}-${b}|`,b-a); });
+for (const equal of [false,true]) skills[4].push(() => {
+  const a=R(ri(1,9),10), b=equal?a:add(a,R(ri(1,9),100));
+  const reverse=pick([false,true]),left=reverse?D(b):F(a),right=reverse?F(a):D(b);
+  return Q(`Сравните ${M(left)} и ${M(right)}. Введите ${M("-1")}, если первое число меньше; ${M("0")}, если числа равны; ${M("1")}, если первое больше.`,R(compare(reverse?b:a,reverse?a:b)),"integer",{comparison_left:left,comparison_right:right});
+});
+skills[5].push(() => { const a=ri(2,12),b=ri(2,9),c=ri(2,9);return I(`${a}\\cdot(${b}+${c})-${a}\\cdot${b}`,a*c); });
+skills[5].push(() => { const a=ri(2,12),b=ri(2,12),c=ri(2,9);return I(`[(${a}+${b})\\cdot${c}]\\div${c}`,a+b); });
+skills[6].push(() => { const a=R(ri(1,99),10),b=R(ri(1,99),10);return Q(`Вычислите удобным способом ${M(`${D(a)}+${D(b)}+${D(sub(R(10),a))}`)}.`,add(R(10),b),"decimal"); });
+skills[6].push(() => { const a=ri(2,25),b=ri(2,25);return I(`${a}\\cdot${b}+${a}\\cdot${100-b}`,a*100); });
+skills[7].push(() => { const a=ri(2,20);return I(`${a}^{1}+1^{${ri(2,9)}}`,a+1); });
+skills[7].push(() => { const a=ri(2,9);return I(`0^{${ri(1,5)}}+${a}^{2}`,a*a); });
+skills[8].push(() => { const w=ri(1,25),n=ri(1,9);return Q(`Вычислите ${M(`${w}+\\frac{${n}}{1000}`)}. Запишите десятичной дробью.`,R(w*1000+n,1000),"decimal"); });
+skills[8].push(() => { const w=ri(1,25),a=ri(1,9),b=ri(1,9);return Q(`Вычислите ${M(`${w}+\\frac{${a}}{10}+\\frac{${b}}{1000}`)}. Запишите десятичной дробью.`,R(w*1000+a*100+b,1000),"decimal"); });
+skills[9].push(() => { const a=R(ri(1,99),10),b=R(ri(1,9),10);return Q(`Вычислите ${M(`${D(mul(a,b))}\\div${D(b)}`)}. Запишите десятичной дробью.`,a,"decimal"); });
+skills[9].push(() => { const a=R(ri(1,999),100);return Q(`Вычислите ${M(`${D(a,2)}-${D(a,3)}`)}. Запишите десятичной дробью.`,R(0),"decimal"); });
+for (const length of [2,3]) skills[11].push(() => { const n=ri(1,9),period=String(n).padStart(length,"0");return Q(`Переведите ${M(`0{,}\\overline{${period}}`)} в несократимую обыкновенную дробь.`,R(n,10**length-1),"fraction"); });
+skills[13].push(() => { const n=ri(1,49);return Q(`Округлите ${M(D(R(n,1000),3))} до сотых.`,R(Math.floor((n+5)/10),100),"decimal",{decimal_places:2,rounding_factor:100}); });
+skills[13].push(() => { const w=ri(1,25);return Q(`Округлите ${M(`${w}{,}05`)} до десятых.`,R(w*10+1,10),"decimal",{decimal_places:1,rounding_factor:10}); });
+skills[14].push(() => { const a=ri(2,9),b=R(ri(1,9),10),c=R(1,2);return Q(`Вычислите ${M(`(${a}+${D(b)})-${F(c)}`)}.`,sub(add(R(a),b),c),"number"); });
+skills[14].push(() => { const a=ri(2,9),b=R(1,4);return Q(`Вычислите ${M(`${a}\\cdot(${F(b)}+0{,}75)`)}.`,R(a),"number"); });
+for (const [key, start] of Object.entries(practiceStart)) {
+  const skill=Number(key);
+  skills[skill]=skills[skill].map((make,index)=>index<start?make:()=>{const task=make();return {...task,parameters:{...task.parameters,practice_level:"CORE"}};});
+}
+
 export const NIS_NEW_TEMPLATE_COUNTS = Object.fromEntries(Object.entries(skills).map(([i, list]) => [i, list.length]));
 export function isNisNewGenerator(key: string) { return /^nis_new_s1_(?:[1-9]|1[0-4])_v2$/.test(key); }
 export function nisNewTemplates(skill: number): Template[] {
   if (!skills[skill]) throw new Error("Unknown NIS skill");
   return skills[skill].map((make, i) => ({ id: `nis-new-1.${skill}-${i + 1}`, difficulty: "CORE", make: () => {
     const t = make();
-    const difficulty = i === 0 ? "BASIC" : i === skills[skill].length - 1 ? "CHALLENGE" : "CORE";
+    const difficulty = t.parameters.practice_level === "CORE" ? "CORE" : i === 0 ? "BASIC" : i === skills[skill].length - 1 ? "CHALLENGE" : "CORE";
     return { ...t, difficulty, parameters: { ...t.parameters, template: `nis-new-1.${skill}-${i + 1}` } };
   } }));
 }
@@ -206,7 +240,7 @@ export function generateNisNewTasks(key: string): GeneratedSection1Task[] {
   if (!isNisNewGenerator(key)) throw new Error("Unknown NIS new generator");
   const templates = nisNewTemplates(Number(key.split("_")[3]));
   const chosen = [...templates];
-  while (chosen.length < 10) chosen.push(pick(templates));
+  while (chosen.length < 12) chosen.push(pick(templates));
   const prompts = new Set<string>();
   return shuffle(chosen.map(t => {
     for (let i = 0; i < 100; i++) {

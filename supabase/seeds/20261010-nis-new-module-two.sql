@@ -8,7 +8,7 @@ declare
   v_sort integer;
   v_title text;
   v_index integer := 0;
-  v_counts integer[] := array[6,8,11,7,8,8,7,20,13,5,5];
+  v_counts integer[] := array[8,10,11,9,10,10,9,20,13,7,7];
 begin
   select id into strict v_program from public.learning_programs
     where name='NIS new program · 5–6 классы' and is_active=true for update;
@@ -36,7 +36,7 @@ begin
       values(v_program,v_section,v_title,v_index-1) returning id into v_topic;
     insert into public.learning_program_skill_generators(program_topic_id,generator_key,config,is_active)
       values(v_topic,'nis_new_s2_'||v_index||'_v2',jsonb_build_object('version',2,
-        'questions_per_attempt',greatest(10,v_counts[v_index]),'template_count',v_counts[v_index],
+        'questions_per_attempt',greatest(12,v_counts[v_index]),'template_count',v_counts[v_index],
         'all_subtypes_required',true),true);
   end loop;
 end;
