@@ -49,7 +49,7 @@ function parentheses(kind: number): Omit<Grade2GeneratedQuestion, "key"> {
     return { prompt: `(${a} + ${b}) − ${c} = ?`, answer: a + b - c, category: "parentheses" };
   }
   if (kind === 1) {
-    const a = rand(10, 20), b = rand(1, 9), c = rand(1, a - b - 1);
+    const a = rand(10, 20), b = rand(1, Math.min(9, a - 2)), c = rand(1, a - b - 1);
     return { prompt: `${a} − (${b} + ${c}) = ?`, answer: a - b - c, category: "parentheses" };
   }
   if (kind === 2) {
