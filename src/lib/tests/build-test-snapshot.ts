@@ -3,6 +3,7 @@ import "server-only";
 import type { NumericMode, QuestionType, QuestionTypeConfig } from "@/app/admin/tests/[id]/types";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import type { TestSnapshot } from "./test-snapshot-types";
+import { generateGrade2Questions, isGrade2Key } from "./grade2-generators";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 type TestRow = { id: string; title: string; description: string | null; status: string };
@@ -24,6 +25,53 @@ export async function buildTestSnapshot(admin: AdminClient, testId: string, crea
     return { ok: false, reason: "query_error" };
   }
   if (!testData || requirePublished && testData.status !== "PUBLISHED") return { ok: false, reason: "not_found" };
+
+  // Source tests in the grade-two collection are templates. Every assignment
+  // gets a fresh immutable 16-question snapshot; the student cannot regenerate
+  // the questions while the assignment is in progress.
+  const generatedConfig = await admin.from("grade2_test_generators")
+    .select("generator_key,question_count,is_active").eq("test_id", testId).maybeSingle();
+  if (generatedConfig.error) {
+    logError("Не удалось загрузить настройки генератора тестов:", generatedConfig.error);
+    return { ok: false, reason: "query_error" };
+  }
+  if (generatedConfig.data?.is_active) {
+    const key = generatedConfig.data.generator_key;
+    if (!isGrade2Key(key) || generatedConfig.data.question_count !== 16) {
+      console.error("Unsupported grade-two generator configuration", { testId });
+      return { ok: false, reason: "query_error" };
+    }
+    const generated = generateGrade2Questions(key);
+    return {
+      ok: true,
+      test: testData as TestRow,
+      snapshot: {
+        version: 2,
+        sourceTestId: testData.id,
+        createdBy,
+        title: testData.title,
+        description: testData.description ?? "",
+        questions: generated.map((question, index) => ({
+          key: question.key,
+          logicalQuestionId: question.key,
+          prompt: question.prompt,
+          imagePath: null,
+          points: 1,
+          required: true,
+          position: index,
+          type: "NUMERIC" as const,
+          numeric: {
+            mode: "EXACT" as const,
+            exactValue: question.answer,
+            tolerance: null,
+            rangeMin: null,
+            rangeMax: null,
+          },
+          options: [],
+        })),
+      },
+    };
+  }
 
   const { data: questionData, error: questionError } = await admin
     .from("test_questions")
