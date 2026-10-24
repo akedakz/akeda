@@ -1,4 +1,8 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import BackLink from "@/components/back-link";
+import { PageContent, PageHeader, PageShell } from "@/components/page-layout/page-layout";
+import generatedStyles from "./generated-test.module.css";
 import { signStoragePathsBatch } from "@/lib/storage/sign-storage-paths-batch";
 import { createAdminClient } from "@/lib/supabase/admin";
 import TestEditor from "./test-editor";
@@ -23,6 +27,31 @@ export default async function TestPage({ params }: { params: Promise<{ id: strin
   }
   if (!testData) notFound();
   const test = testData as TestRow;
+
+  const generatedConfig = await admin.from("grade2_test_generators")
+    .select("generator_key,question_count,is_active").eq("test_id", id).maybeSingle();
+  if (generatedConfig.error) {
+    logError("Не удалось проверить генератор теста:", generatedConfig.error);
+    return <div className={styles.queryError}>Не удалось загрузить настройки генератора.</div>;
+  }
+  if (generatedConfig.data?.is_active) {
+    const backHref = test.folder_id ? `/admin/tests/folders/${test.folder_id}` : "/admin/tests";
+    return <PageShell>
+      <BackLink href={backHref}>К тестам</BackLink>
+      <PageHeader title={test.title} description={test.description ?? "Генерируемый тест по арифметике."}/>
+      <PageContent>
+        <section className={generatedStyles.panel}>
+          <span>Генератор заданий</span>
+          <h2>16 новых вопросов при каждом назначении</h2>
+          <p>Ученик вводит ответы числом. Вопросы выбираются из ограниченных математических шаблонов. Готовый вариант закрепляется за назначением и не изменяется во время решения.</p>
+          <div className={generatedStyles.actions}>
+            <Link href={`/admin/tests/${test.id}/preview`}>Проверить случайный набор</Link>
+            <Link href={backHref}>Вернуться в библиотеку</Link>
+          </div>
+        </section>
+      </PageContent>
+    </PageShell>;
+  }
 
   const { data: questionData, error: questionError } = await admin.from("test_questions").select("id, type, prompt, image_path, points, is_required, position, numeric_mode, numeric_answer, numeric_tolerance, numeric_min, numeric_max, type_config").eq("test_id", id).order("position", { ascending: true });
   if (questionError) {

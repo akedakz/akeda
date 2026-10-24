@@ -17,5 +17,14 @@ export async function loadTestSummaries(admin: ReturnType<typeof createAdminClie
     const current = summaries.get(question.test_id) ?? { questionCount: 0, maxPoints: 0 };
     summaries.set(question.test_id, { questionCount: current.questionCount + 1, maxPoints: current.maxPoints + Number(question.points ?? 0) });
   }
+  const generated = await admin.from("grade2_test_generators")
+    .select("test_id,question_count").eq("is_active", true).in("test_id", testIds);
+  if (generated.error) {
+    console.error("Не удалось загрузить количество генерируемых заданий:", generated.error);
+    return { summaries, error: generated.error };
+  }
+  for (const row of generated.data ?? []) {
+    summaries.set(row.test_id, { questionCount: row.question_count, maxPoints: row.question_count });
+  }
   return { summaries, error: null };
 }

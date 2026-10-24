@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "prebuild": "node --no-warnings --experimental-strip-types scripts/grade2-generator-harness.mjs",
+    "test:grade2-generators": "node --no-warnings --experimental-strip-types scripts/grade2-generator-harness.mjs",
     "start": "next start",
     "lint": "eslint",
     "test:formula-checker": "node --no-warnings --experimental-strip-types scripts/formula-checker-harness.ts",
